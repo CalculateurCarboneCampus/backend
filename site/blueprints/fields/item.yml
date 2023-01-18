@@ -13,12 +13,6 @@ fields:
     label: Données
     type: number
     width: 1/3
-  tCO2e:
-    label: CO2e
-    type: number
-    after: CO2e
-    step: 0.01
-    width: 1/3
   unit:
     label: Unité
     type: select
@@ -37,6 +31,12 @@ fields:
       tonneKM: tonne.km
       passagersKM: passagers.km
       repas: repas
+  tCO2e:
+    label: CO2e
+    type: number
+    after: CO2e
+    step: 0.01
+    width: 1/3
   srcFR:
     label: Sources FE
     type: text
