@@ -32,7 +32,7 @@ fields:
       passagersKM: passagers.km
       repas: repas
   tCO2e:
-    label: CO2e
+    label: tCO2e
     type: number
     after: CO2e
     step: 0.01
