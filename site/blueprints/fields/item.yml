@@ -31,6 +31,12 @@ fields:
       tonneKM: tonne.km
       passagersKM: passagers.km
       repas: repas
+      jour: jour
+      m2: m2
+      km: km
+      appareil: appareil
+      email: email
+      requeteInternet: requête internet
   tCO2e:
     label: tCO2e
     type: number
