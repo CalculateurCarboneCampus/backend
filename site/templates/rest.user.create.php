@@ -50,43 +50,29 @@ function createUser(mixed $newUserName, mixed $newUserMail, mixed $newUserPasswo
 
 $newUser = createUser(get('newUserName'), get('newUserMail'), get('newUserPassword'));
 
+
+
+echo get('newUserName');
+echo get('newUserMail');
+echo get('newUserPassword');
+
+
 if(! $newUser['error']) {
-  $newUser['user']->login( get('newUserPassword') );
-  go('user-panel');
+    $newUserName = get('newUserName');
+    $newUserMail = get('newUserMail');
+
+    echo json_encode([
+        'status'    => 'success',
+        'message'   => "le compte de $newUserName, $newUserMail, à été créé avec succès!",
+    ]);
+    return;
 }
 
+else echo json_encode([
+    'status'    => 'error',
+    'message'   => $newUser['error']->getMessage(),
+]);
+return;
+
+
 ?>
-
-<?php snippet('header') ?>
-
-<h1>Creer un compte</h1>
-
-<?php if( $newUser['error'] ): ?>
-  <p>Erreur lors de la création de l'utilisateur: </p>
-  <p><strong><?= $newUser['error']->getMessage() ?></strong></p>
-<?php endif ?>
-
-<form>
-  <label>
-    nom d'utilisateur
-    <input name="newUserName"     type="text">
-  </label>
-
-  <label>
-    adresse mail
-    <input name="newUserMail"     type="email" >
-  </label>
-
-  <label>
-    mot de pass
-    <input name="newUserPassword" type="password">
-  </label>
-
-  <input type="submit" >
-</form>
-
-<h2>Déja un compte?</h2>
-<p><a href="user-login" >se connecter -></a></p>
-
-
-<?php snippet('footer') ?>

@@ -68,6 +68,19 @@ return [
          * USER
          */
 
+         [
+            'pattern' => 'rest.user.create',
+            'action'  => function () {
+                header("Access-Control-Allow-Origin: *");
+
+                return Page::factory([
+                    'slug'      => 'rest.user.create',
+                    'template'  => 'rest.user.create',
+                ]);
+            },
+            'method' => 'POST',
+        ],
+
         [
             'pattern' => 'rest.user.data',
             'action'  => function () {
