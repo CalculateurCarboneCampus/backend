@@ -50,13 +50,6 @@ function createUser(mixed $newUserName, mixed $newUserMail, mixed $newUserPasswo
 
 $newUser = createUser(get('newUserName'), get('newUserMail'), get('newUserPassword'));
 
-
-
-echo get('newUserName');
-echo get('newUserMail');
-echo get('newUserPassword');
-
-
 if(! $newUser['error']) {
     $newUserName = get('newUserName');
     $newUserMail = get('newUserMail');
