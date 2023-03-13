@@ -6,6 +6,10 @@ Text:
 
 ----
 
+Lifecycleisactive: false
+
+----
+
 Item:
 
 - 
@@ -16,22 +20,22 @@ Item:
       name: Gaz europe
       description: ""
       donnes: 0
-      tco2e: 0.24
       unit: kwhPCI
+      tco2e: 0.24
       srcfr: Fournisseur
     - 
       name: Mazout
       description: ""
       donnes: 0
-      tco2e: 3.19
       unit: litre
+      tco2e: 3.19
       srcfr: Fournisseur
     - 
       name: 'CADIOM (chauffage à distance - SIG)'
       description: ""
       donnes: 0
-      tco2e: 0.2
       unit: kwhPCI
+      tco2e: 0.2
       srcfr: ""
     - 
       name: >
@@ -39,8 +43,8 @@ Item:
         pellets)
       description: ""
       donnes: 0
-      tco2e: 0.03
       unit: kwhPCI
+      tco2e: 0.03
       srcfr: ""
 - 
   name: "Consommation d'électricité"
@@ -50,6 +54,6 @@ Item:
       name: A définir sur base moyenne suisse
       description: ""
       donnes: 0
-      tco2e: 0.18
       unit: KWh
+      tco2e: 0.18
       srcfr: Fournisseur

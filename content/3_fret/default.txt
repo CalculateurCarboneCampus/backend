@@ -6,6 +6,10 @@ Text:
 
 ----
 
+Lifecycleisactive: false
+
+----
+
 Item:
 
 - 
@@ -16,27 +20,27 @@ Item:
       name: 'Fourgon - véhicule léger -  8 m3'
       description: ""
       donnes: 0
-      tco2e: 0.56
       unit: ""
+      tco2e: 0.56
       srcfr: ""
     - 
       name: 'Camion léger - 3,5 t -  express colis'
       description: ""
       donnes: 0
-      tco2e: 0.55
       unit: ""
+      tco2e: 0.55
       srcfr: ""
     - 
       name: 'Camion remorque grand volume - 26 t'
       description: ""
       donnes: 0
-      tco2e: 1.07
       unit: ""
+      tco2e: 1.07
       srcfr: ""
     - 
       name: Train
       description: ""
       donnes: 0
-      tco2e: 0.02
       unit: ""
+      tco2e: 0.02
       srcfr: ""

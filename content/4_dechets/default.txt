@@ -6,6 +6,10 @@ Text:
 
 ----
 
+Lifecycleisactive: false
+
+----
+
 Item:
 
 - 
@@ -16,8 +20,8 @@ Item:
       name: Incinérables
       description: ""
       donnes: 0
-      tco2e: 167
       unit: Tonne
+      tco2e: 167
       srcfr: Bilan émission SIG
 - 
   name: Déchets recyclés
@@ -27,13 +31,13 @@ Item:
       name: PET
       description: ""
       donnes: 0
-      tco2e: 18
       unit: ""
+      tco2e: 18
       srcfr: ""
     - 
       name: Papier
       description: ""
       donnes: 0
-      tco2e: 18
       unit: ""
+      tco2e: 18
       srcfr: ""

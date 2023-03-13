@@ -6,6 +6,10 @@ Text:
 
 ----
 
+Lifecycleisactive: false
+
+----
+
 Item:
 
 - 
@@ -16,15 +20,15 @@ Item:
       name: 'Voiture - motorisation moyenne'
       description: ""
       donnes: 0
-      tco2e: 0.19
       unit: ""
+      tco2e: 0.19
       srcfr: ""
     - 
       name: Train
       description: ""
       donnes: 0
-      tco2e: 0
       unit: passagersKM
+      tco2e: 0
       srcfr: ""
 - 
   name: Déplacements professionnels
@@ -34,20 +38,20 @@ Item:
       name: 'Voiture - motorisation moyenne'
       description: ""
       donnes: 0
-      tco2e: 0.19
       unit: passagersKM
+      tco2e: 0.19
       srcfr: ""
     - 
       name: Train
       description: ""
       donnes: 0
-      tco2e: 0
       unit: ""
+      tco2e: 0
       srcfr: ""
     - 
       name: TPG
       description: ""
       donnes: 0
-      tco2e: 0.08
       unit: ""
+      tco2e: 0.08
       srcfr: ""

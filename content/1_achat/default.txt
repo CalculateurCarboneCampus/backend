@@ -6,6 +6,10 @@ Text: Poste d'émission
 
 ----
 
+Lifecycleisactive: true
+
+----
+
 Item:
 
 - 
