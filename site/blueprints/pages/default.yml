@@ -9,7 +9,7 @@ columns:
         size: small
   - width: 1/3
     fields:
-      toggle:
+      lifeCycleIsActive:
         type: toggle
         label: Activer un champs de durée de vie?
         default: "non"
