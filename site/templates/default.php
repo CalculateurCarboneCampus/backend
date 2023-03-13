@@ -21,9 +21,10 @@ echo json_encode(
     return $field->num() > 0;
   })->map(function ($value) {
     return [
-      'entityName'      => $value->title()->value(),
-      'description'     => $value->text()->value(),
-      'entitySections'  => $value->item()->toStructure()->toArray(),
+      'entityName'          => $value->title()->value(),
+      'description'         => $value->text()->value(),
+      'entitySections'      => $value->item()->toStructure()->toArray(),
+      'hasLifeCycleOption'  => $value->lifeCycleIsActive()->toBool(),
     ];
   })->data)
 );
