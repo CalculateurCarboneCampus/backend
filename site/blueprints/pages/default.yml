@@ -1,12 +1,21 @@
 title: Default Page
 
 columns:
-  - width: 3/3
+  - width: 2/3
     fields:
       text:
         label: Description
         type: textarea
         size: small
+  - width: 1/3
+    fields:
+      toggle:
+        type: toggle
+        label: Activer un champs de durée de vie?
+        default: "non"
+        text:
+          - "non"
+          - "oui"
   - width: 3/3
     fields:
       item:
