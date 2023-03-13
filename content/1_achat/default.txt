@@ -1,0 +1,74 @@
+Title: Achat
+
+----
+
+Text: Poste d'émission
+
+----
+
+Item:
+
+- 
+  name: Ratios monétaires
+  description: Information de ratios monétaires
+  item:
+    - 
+      name: Machines et équipements
+      description: ""
+      donnes: 0
+      unit: KCHF
+      tco2e: 754.6
+      srcfr: Ademe
+    - 
+      name: Meubles et autres biens manufacturés
+      description: ""
+      donnes: 0
+      unit: KCHF
+      tco2e: 646.8
+      srcfr: ""
+    - 
+      name: Papier et carton
+      description: ""
+      donnes: 0
+      unit: KCHF
+      tco2e: 970.2
+      srcfr: ""
+- 
+  name: Ratios non monétaires
+  description: ""
+  item:
+    - 
+      name: Acier ou fer-blanc neuf
+      description: ""
+      donnes: 0
+      unit: Tonne
+      tco2e: 2210
+      srcfr: ""
+    - 
+      name: Acier ou fer-blanc recyclé
+      description: ""
+      donnes: 0
+      unit: Tonne
+      tco2e: 938
+      srcfr: ""
+    - 
+      name: Aluminium neuf
+      description: ""
+      donnes: 0
+      unit: Tonne
+      tco2e: 7800
+      srcfr: ""
+    - 
+      name: Aluminium recyclé
+      description: ""
+      donnes: 0
+      unit: ""
+      tco2e: 562
+      srcfr: ""
+    - 
+      name: Bois
+      description: ""
+      donnes: 0
+      unit: ""
+      tco2e: 36.7
+      srcfr: ""

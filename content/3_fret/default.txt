@@ -1,0 +1,42 @@
+Title: fret
+
+----
+
+Text: 
+
+----
+
+Item:
+
+- 
+  name: fret (trouver sous-section)
+  description: ""
+  item:
+    - 
+      name: 'Fourgon - véhicule léger -  8 m3'
+      description: ""
+      donnes: 0
+      tco2e: 0.56
+      unit: ""
+      srcfr: ""
+    - 
+      name: 'Camion léger - 3,5 t -  express colis'
+      description: ""
+      donnes: 0
+      tco2e: 0.55
+      unit: ""
+      srcfr: ""
+    - 
+      name: 'Camion remorque grand volume - 26 t'
+      description: ""
+      donnes: 0
+      tco2e: 1.07
+      unit: ""
+      srcfr: ""
+    - 
+      name: Train
+      description: ""
+      donnes: 0
+      tco2e: 0.02
+      unit: ""
+      srcfr: ""

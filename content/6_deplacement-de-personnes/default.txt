@@ -1,0 +1,53 @@
+Title: Déplacement de personnes
+
+----
+
+Text: 
+
+----
+
+Item:
+
+- 
+  name: Domicile-travail
+  description: ""
+  item:
+    - 
+      name: 'Voiture - motorisation moyenne'
+      description: ""
+      donnes: 0
+      tco2e: 0.19
+      unit: ""
+      srcfr: ""
+    - 
+      name: Train
+      description: ""
+      donnes: 0
+      tco2e: 0
+      unit: passagersKM
+      srcfr: ""
+- 
+  name: Déplacements professionnels
+  description: ""
+  item:
+    - 
+      name: 'Voiture - motorisation moyenne'
+      description: ""
+      donnes: 0
+      tco2e: 0.19
+      unit: passagersKM
+      srcfr: ""
+    - 
+      name: Train
+      description: ""
+      donnes: 0
+      tco2e: 0
+      unit: ""
+      srcfr: ""
+    - 
+      name: TPG
+      description: ""
+      donnes: 0
+      tco2e: 0.08
+      unit: ""
+      srcfr: ""
