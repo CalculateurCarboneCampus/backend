@@ -12,7 +12,7 @@ columns:
       lifeCycleIsActive:
         type: toggle
         label: Activer un champs de durée de vie?
-        default: "non"
+        default: false
         text:
           - "non"
           - "oui"
