@@ -1,8 +1,8 @@
-Title: Déplacement de personnes
+Title: "Déplacement de personnes"
 
 ----
 
-Text: Le déplacement de personnes correspond au transport de personnes dans le cadre d'une entreprise ou d'un projet (déplacements entre le domicile et le travail ou déplacements professionnels). Les émissions associées au transport de personnes sont les émissions générées par l’utilisation directe, l'utilisation indirecte via l’approvisionnement en énergie, la construction et l’entretien des véhicules ainsi que les voies de communication.
+Text: "Le déplacement de personnes correspond au transport de personnes dans le cadre d'une entreprise ou d'un projet (déplacements entre le domicile et le travail ou déplacements professionnels). Les émissions associées au transport de personnes sont les émissions générées par l’utilisation directe, l'utilisation indirecte via l’approvisionnement en énergie, la construction et l’entretien des véhicules ainsi que les voies de communication."
 
 ----
 
@@ -12,217 +12,217 @@ Lifecycleisactive: false
 
 Item:
 -
-  name: Domicile-travail
-  description: Les trajets domicile-travail se définissent comme un parcours aller-retour effectué par un salarié pour se rendre de son lieu de travail à son domicile.
+  name: "Domicile-travail"
+  description: "Les trajets domicile-travail se définissent comme un parcours aller-retour effectué par un salarié pour se rendre de son lieu de travail à son domicile."
   item:
     -
-      name: Télétravail
-      description: Un jour à 8h de télétravail avec un approvisionnement du mix de consommateurs CH
+      name: "Télétravail"
+      description: "Un jour à 8h de télétravail avec un approvisionnement du mix de consommateurs CH"
       donnes: 0
-      unit: heure
+      unit: "heure"
       tco2e: 0.26
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Voiture thermique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation moyenne et flotte moyenne
+      name: "Voiture thermique"
+      description: "Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation moyenne et flotte moyenne"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.3
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Voiture électrique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation électrique et avec mix de consommateurs CH
+      name: "Voiture électrique"
+      description: "Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation électrique et avec mix de consommateurs CH"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.13
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Train
-      description: Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
+      name: "Train"
+      description: "Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Transport public
-      description: Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
+      name: "Transport public"
+      description: "Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.03
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Autocar
-      description: Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
+      name: "Autocar"
+      description: "Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.06
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Scooter
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
+      name: "Scooter"
+      description: "Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.1037
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Scooter électrique
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
+      name: "Scooter électrique"
+      description: "Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.0308
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Moto (250-750ccm)
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
+      name: "Moto (250-750ccm)"
+      description: "Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.14
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Moto (>750cm) 
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
+      name: "Moto (>750cm) "
+      description: "Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.15
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Vélo
-      description: Transport local pour une personne à vélo
+      name: "Vélo"
+      description: "Transport local pour une personne à vélo"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Vélo à assistance électrique
-      description: Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
+      name: "Vélo à assistance électrique"
+      description: "Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Avion
-      description: Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
+      name: "Avion"
+      description: "Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.26
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
 -
-  name: Déplacements professionnels
-  description: Un déplacement professionnel ou voyage d'affaires a lieu dès lors qu'une personne exerce temporairement une activité professionnelle en dehors de son domicile et de son lieu de travail habituel et doit ainsi se déplacer.
+  name: "Déplacements professionnels"
+  description: "Un déplacement professionnel ou voyage d'affaires a lieu dès lors qu'une personne exerce temporairement une activité professionnelle en dehors de son domicile et de son lieu de travail habituel et doit ainsi se déplacer."
   item:
     -
-      name: Voiture thermique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
+      name: "Voiture thermique"
+      description: "Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.3
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Voiture électrique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
+      name: "Voiture électrique"
+      description: "Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.12
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Train
-      description: Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
+      name: "Train"
+      description: "Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Transport public
-      description: Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
+      name: "Transport public"
+      description: "Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.03
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Autocar
-      description: Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
+      name: "Autocar"
+      description: "Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.06
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Scooter
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
+      name: "Scooter"
+      description: "Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.1037
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Scooter électrique
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
+      name: "Scooter électrique"
+      description: "Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.0308
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Moto (250-750ccm)
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
+      name: "Moto (250-750ccm)"
+      description: "Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.14
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Moto (>750cm) 
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
+      name: "Moto (>750cm) "
+      description: "Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.15
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Vélo
-      description: Transport local pour une personne à vélo
+      name: "Vélo"
+      description: "Transport local pour une personne à vélo"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Vélo à assistance électrique
-      description: Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
+      name: "Vélo à assistance électrique"
+      description: "Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.01
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Avion
-      description: Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
+      name: "Avion"
+      description: "Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète"
       donnes: 0
-      unit: km
+      unit: "km"
       tco2e: 0.26
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"
 
     -
-      name: Hébergements et restauration
-      description: Coût de l'hébergement et de la restauration lors des déplacements professionels
+      name: "Hébergements et restauration"
+      description: "Coût de l'hébergement et de la restauration lors des déplacements professionels"
       donnes: 0
-      unit: KCHF
+      unit: "KCHF"
       tco2e: 320
-      srcfr: Mobitool v2.1 (2020)
+      srcfr: "Mobitool v2.1 (2020)"

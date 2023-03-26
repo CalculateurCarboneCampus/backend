@@ -1,8 +1,8 @@
-Title: Déchets
+Title: "Déchets"
 
 ----
 
-Text: Les déchets correspondent aux matériaux et emballages devant être jetés en fin de vie de ceux-ci ou à la fin d'un projet.
+Text: "Les déchets correspondent aux matériaux et emballages devant être jetés en fin de vie de ceux-ci ou à la fin d'un projet."
 
 ----
 
@@ -12,61 +12,61 @@ Lifecycleisactive: false
 
 Item:
 -
-  name: Déchets incinérables
-  description: Les déchets incinérables sont les déchets devant être traités par incinération
+  name: "Déchets incinérables"
+  description: "Les déchets incinérables sont les déchets devant être traités par incinération"
   item:
     -
-      name: Incinérables
-      description: Moyenne suisse de déchets incinérables incluant la collecte (le transport) et le traitement du déchet
+      name: "Incinérables"
+      description: "Moyenne suisse de déchets incinérables incluant la collecte (le transport) et le traitement du déchet"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 282
-      srcfr: Ecoinvent 3.9.1. (2022) "Market for average incineration residue"
+      srcfr: "Ecoinvent 3.9.1. (2022) "Market for average incineration residue""
 
 -
-  name:  Recyclages de déchets d'emballages et matériaux
-  description: Les déchets recyclés sont les déchets qui sont traités par des centres de recyclage. Les facteurs d'émissions prennent en compte les étapes allant de la collecte des déchets jusqu'à la sortie du recyclage, à savoir :
+  name: " Recyclages de déchets d'emballages et matériaux"
+  description: "Les déchets recyclés sont les déchets qui sont traités par des centres de recyclage. Les facteurs d'émissions prennent en compte les étapes allant de la collecte des déchets jusqu'à la sortie du recyclage, à savoir :
 -collecte sélective dont bacs/conteneurs, collecte et transfert
 -tri en centre de tri
 -transport entre le centre de tri et les sites de recyclage/régénération
--recyclage/régénération
+-recyclage/régénération"
   item:
     -
-      name: Papier
-      description: Recyclage de déchets en papier
+      name: "Papier"
+      description: "Recyclage de déchets en papier"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 33
-      srcfr: Ademe V8.7.2 (2022)
+      srcfr: "Ademe V8.7.2 (2022)"
 
     -
-      name: Carton 
-      description: Recyclage de déchets en carton
+      name: "Carton "
+      description: "Recyclage de déchets en carton"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 992
-      srcfr: Ademe V8.7.2 (2022)
+      srcfr: "Ademe V8.7.2 (2022)"
 
     -
-      name: Plastique rigide PET
-      description: Recyclage de déchets d'emballages en plastique rigide PET
+      name: "Plastique rigide PET"
+      description: "Recyclage de déchets d'emballages en plastique rigide PET"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 662
-      srcfr: Ademe V8.7.2 (2022)
+      srcfr: "Ademe V8.7.2 (2022)"
 
     -
-      name: Verre
-      description: Recyclage de déchets en verre
+      name: "Verre"
+      description: "Recyclage de déchets en verre"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 639
-      srcfr: Ademe V8.7.2 (2022)
+      srcfr: "Ademe V8.7.2 (2022)"
 
     -
-      name: Aluminium
-      description: Recyclage de déchets en aluminium
+      name: "Aluminium"
+      description: "Recyclage de déchets en aluminium"
       donnes: 0
-      unit: Tonne
+      unit: "Tonne"
       tco2e: 873
-      srcfr: Ademe V8.7.2 (2022)
+      srcfr: "Ademe V8.7.2 (2022)"
