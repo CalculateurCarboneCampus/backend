@@ -64,11 +64,11 @@ function kirbyDBFile_entityText({title, text, lifeCycleIsActive}: {
   text: string,
   lifeCycleIsActive: boolean
 }): string {
-return `Title: ${title}
+return `Title: "${title}"
 
 ----
 
-Text: ${text}
+Text: "${text}"
 
 ----
 
@@ -87,8 +87,8 @@ function kirbyDBFile_entitySectionText({name, description}: {
 }): string {
   return `
 -
-  name: ${name}
-  description: ${description}
+  name: "${name}"
+  description: "${description}"
   item:`
 }
 
@@ -102,11 +102,11 @@ function kirbyDBFile_itemOfEntitySection({name, description, donnes, unit, tco2e
 }): string {
   return `
     -
-      name: ${name}
-      description: ${description}
+      name: "${name}"
+      description: "${description}"
       donnes: ${donnes}
-      unit: ${unit}
+      unit: "${unit}"
       tco2e: ${tco2e}
-      srcfr: ${srcfr}
+      srcfr: "${srcfr}"
 `
 }
