@@ -1,8 +1,8 @@
-Title: fret
+Title: Fret
 
 ----
 
-Text: 
+Text: Le fret correspond au transport de marchandises (routier, ferroviaire, aérien ou maritime). Les émissions associées au transport de marchandises sont les émissions générées par l’utilisation directe, l'utilisation indirecte via l’approvisionnement en énergie, la construction et l’entretien des véhicules ainsi que les voies de communication.
 
 ----
 
@@ -11,36 +11,86 @@ Lifecycleisactive: false
 ----
 
 Item:
-
-- 
-  name: fret (trouver sous-section)
-  description: ""
+-
+  name: Fret
+  description: 
   item:
-    - 
-      name: 'Fourgon - véhicule léger -  8 m3'
-      description: ""
+    -
+      name: Camionette (<3,5t)
+      description: Transport de marchandises en camionette (<3,5t)(8 m3) Diesel/Essence avec une flotte moyenne
       donnes: 0
-      unit: ""
-      tco2e: 0.56
-      srcfr: ""
-    - 
-      name: 'Camion léger - 3,5 t -  express colis'
-      description: ""
+      unit: tonneKM
+      tco2e: 1.74
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Camion 3,5t-7,5t
+      description: Transport de marchandises en camion 3,5t-7,5t diesel poids moyen
       donnes: 0
-      unit: ""
-      tco2e: 0.55
-      srcfr: ""
-    - 
-      name: 'Camion remorque grand volume - 26 t'
-      description: ""
+      unit: tonneKM
+      tco2e: 0.54
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Camion 7,5t-16t
+      description: Transport de marchandises en camion 7,5t-16t diesel poids moyen
       donnes: 0
-      unit: ""
-      tco2e: 1.07
-      srcfr: ""
-    - 
+      unit: tonneKM
+      tco2e: 0.23
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Camion 16t-32t
+      description: Transport de marchandises en camion diesel poids moyen 16t-32t
+      donnes: 0
+      unit: tonneKM
+      tco2e: 0.18
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Camion 32t-40t
+      description: Transport de marchandises en camion Diesel poids moyen 32t-40t
+      donnes: 0
+      unit: tonneKM
+      tco2e: 0.12
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Semi-remorque (7.5t-16t)
+      description: Transport de marchandises en semi remorque (7.5t-16t) Euro 5 motorisation diesel
+      donnes: 0
+      unit: tonneKM
+      tco2e: 0.2286
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Semi-remorque (16t-32t)
+      description: Transport de marchandises en semi remorque (16t-32t) Euro 5 motorisation diesel
+      donnes: 0
+      unit: tonneKM
+      tco2e: 0.1797
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Semi-remorque (32t-40t)
+      description: Transport de marchandises en semi remorque (32t-40t) Euro 5 motorisation diesel
+      donnes: 0
+      unit: tonneKM
+      tco2e: 0.1152
+      srcfr: Mobitool v2.1 (2020)
+
+    -
       name: Train
-      description: ""
+      description: Transport de marchansides en train en suisse avec mix électricité CFF avec un peu de diesel
       donnes: 0
-      unit: ""
-      tco2e: 0.02
-      srcfr: ""
+      unit: tonneKM
+      tco2e: 0.01
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: Avion
+      description: Transport de marchandises en avion motorisation kérozène
+      donnes: 0
+      unit: tonneKM
+      tco2e: 1.5
+      srcfr: Mobitool v2.1 (2020)

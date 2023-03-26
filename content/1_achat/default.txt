@@ -2,77 +2,254 @@ Title: Achat
 
 ----
 
-Text: Poste d'émission
+Text: L'achat de biens correspond à la production des matériaux de base (verre, acier, métaux, plastique, etc.) qui engendre des émissions de gaz à effet de serre essentiellement dues à l'énergie fossile et l'électricité consommées dans les processus industriels de fabrication (charbon pour la fabrication d'acier par exemple). 
+Pour l'achat de biens durables (durée de vie > 1 an), il est proposé de spécifier la durée de vie d'un bien acheté. Le calculateur va automatiquement proposer un amortissement annuel de l'empreinte carbone. Par exemple, l'achat d'un ordinateur peut être amorti sur 3 ans. En écrivant 3 dans la case "Durée de vie", le calculateur va automatiquement attribuer 1/3 de l'empreinte carbone à votre projet. Si votre projet se déroule sur moins qu'une année, il convient d'augmenter la durée en proportion (exemple : pour un ordinateur à 3 ans de vie et un bilan carbone pour un projet sur 6 mois, il convient de spécifier "6" dans la case "durée de vie" de l'ordinateur. Le calculateur va ainsi diviser par 6 et attribuer 1/6e de l'empreinte carbone à votre projet.
+
+Pour l'achat de services, les services peuvent désigner une très large variété de prestations : informatique, gardiennage, téléphone, hôtellerie, voire garde d'enfants assurée par l'entreprise ou le projet. Cela n'inclut pas les services de transport (personnes et marchandises) et les services de traitement des déchets qui sont détaillés dans d'autres étapes/sections.
 
 ----
 
-Lifecycleisactive: true
+Lifecycleisactive: false
 
 ----
 
 Item:
-
-- 
-  name: Ratios monétaires
-  description: Information de ratios monétaires
+-
+  name: Ratios monétaires, méthode par les prix
+  description: Un facteur d’émissions monétaire permet d’estimer en ordre de grandeur le contenu carbone d’un produit ou service acheté à partir de son prix.
   item:
-    - 
+    -
       name: Machines et équipements
-      description: ""
+      description: Coûts de machines et équipements pour le projet
       donnes: 0
       unit: KCHF
-      tco2e: 754.6
-      srcfr: Ademe
-    - 
+      tco2e: 700
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
       name: Meubles et autres biens manufacturés
-      description: ""
+      description: Coûts des meubles et autres biens manufacturés pour le projet
       donnes: 0
       unit: KCHF
-      tco2e: 646.8
-      srcfr: ""
-    - 
-      name: Papier et carton
-      description: ""
+      tco2e: 600
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Textile et habillement
+      description: Coûts du textile et habillement pour le projet
       donnes: 0
       unit: KCHF
-      tco2e: 970.2
-      srcfr: ""
-- 
-  name: Ratios non monétaires
-  description: ""
+      tco2e: 600
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Produits informatiques, électroniques et optiques
+      description: Coûts des produits informatiques, électroniques et optiques pour le projet
+      donnes: 0
+      unit: KCHF
+      tco2e: 400
+      srcfr: Ademe V8.7.2 (2022)
+
+-
+  name: Ratios non monétaires, méthode par les matériaux
+  description: Un facteur d’émissions non monétaire ou physique permet d’estimer le contenu carbone d’un produit ou service acheté à partir des matériaux utilisés ou/et l'énergie consommée pour la fabrication et la livraison du produit ou du service.
   item:
-    - 
+    -
       name: Acier ou fer-blanc neuf
-      description: ""
+      description: 
       donnes: 0
       unit: Tonne
       tco2e: 2210
-      srcfr: ""
-    - 
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
       name: Acier ou fer-blanc recyclé
-      description: ""
+      description: 
       donnes: 0
       unit: Tonne
       tco2e: 938
-      srcfr: ""
-    - 
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
       name: Aluminium neuf
-      description: ""
+      description: 
       donnes: 0
       unit: Tonne
       tco2e: 7800
-      srcfr: ""
-    - 
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
       name: Aluminium recyclé
-      description: ""
+      description: 
       donnes: 0
-      unit: ""
+      unit: Tonne
       tco2e: 562
-      srcfr: ""
-    - 
-      name: Bois
-      description: ""
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Divers plastiques neuf
+      description: 
       donnes: 0
-      unit: ""
+      unit: Tonne
+      tco2e: 2383
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Divers plastiques recyclés
+      description: 
+      donnes: 0
+      unit: Tonne
+      tco2e: 202
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Carton neuf
+      description: 
+      donnes: 0
+      unit: Tonne
+      tco2e: 390
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Carton recyclé
+      description: 
+      donnes: 0
+      unit: Tonne
+      tco2e: 670
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Papier
+      description: 
+      donnes: 0
+      unit: Tonne
+      tco2e: 919
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Bois
+      description: 
+      donnes: 0
+      unit: Tonne
       tco2e: 36.7
-      srcfr: ""
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Brique en terre cuite
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.27
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Brique en argile léger 
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.18
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Sable 
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.02
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Gravier concassé
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.02
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Béton maigre
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.06
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Béton pour bâtiment
+      description: 
+      donnes: 0
+      unit: kg
+      tco2e: 0.1
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Vidéoconférence
+      description: Une vidéoconférence avec électricité mix de consommateurs CH, pendant 1h, par participant
+      donnes: 0
+      unit: heure
+      tco2e: 0.04
+      srcfr: Mobitool v2.1 (2020)
+
+    -
+      name: email avec pièce jointe
+      description: 
+      donnes: 0
+      unit: email
+      tco2e: 0.04
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Requête internet
+      description: 
+      donnes: 0
+      unit: requeteInternet
+      tco2e: 0.01
+      srcfr: Ademe V8.7.2 (2022)
+
+    -
+      name: Tablette
+      description: Jour d'utilisation d'une tablette (<10 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 0.12
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016
+
+    -
+      name: Laptop
+      description: Jour d'utilisation d'un laptop (<ou égal à 14.1 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 0.3
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016
+
+    -
+      name: Desktop (standard)
+      description: Jour d'utilisation d'un desktop sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 0.46
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016
+
+    -
+      name: Imprimante A4 laser Noir & Blanc
+      description: Jour d'utilisation d'une imprimante laser noir et blanc sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 0.25
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016
+
+    -
+      name: Imprimante A4 laser couleur
+      description: Jour d'utilisation d'une imprimante laser couleur sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 0.43
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016
+
+    -
+      name: Photocopieurs
+      description: Jour d'utilisation d'une photocopieuse sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      donnes: 0
+      unit: jour
+      tco2e: 5
+      srcfr: ECOPROD – Guide des méthodes et valeurs (version 3.4) 2016

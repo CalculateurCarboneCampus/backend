@@ -1,8 +1,8 @@
-Title: batiment
+Title: Bâtiment
 
 ----
 
-Text: 
+Text: Le bâtiment correspond aux émissions liées à la consommation d'électricité et de chauffage dans l'utilisation des bâtiments.
 
 ----
 
@@ -11,49 +11,50 @@ Lifecycleisactive: false
 ----
 
 Item:
-
-- 
-  name: "Consommation d'énergie chauffage"
-  description: ""
+-
+  name: Consommation d'énergie chauffage
+  description: La consommation d'énergie pour la production de chaleur pour le chauffage des bâtiments.
   item:
-    - 
-      name: Gaz europe
-      description: ""
-      donnes: 0
-      unit: kwhPCI
-      tco2e: 0.24
-      srcfr: Fournisseur
-    - 
-      name: Mazout
-      description: ""
-      donnes: 0
-      unit: litre
-      tco2e: 3.19
-      srcfr: Fournisseur
-    - 
-      name: 'CADIOM (chauffage à distance - SIG)'
-      description: ""
-      donnes: 0
-      unit: kwhPCI
-      tco2e: 0.2
-      srcfr: ""
-    - 
-      name: >
-        Bioénergies (bois déchiqueté ou
-        pellets)
-      description: ""
-      donnes: 0
-      unit: kwhPCI
-      tco2e: 0.03
-      srcfr: ""
-- 
-  name: "Consommation d'électricité"
-  description: ""
-  item:
-    - 
-      name: A définir sur base moyenne suisse
-      description: ""
+    -
+      name: Gaz naturel
+      description: 
       donnes: 0
       unit: KWh
-      tco2e: 0.18
-      srcfr: Fournisseur
+      tco2e: 0.23
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+    -
+      name: Mazout
+      description: 
+      donnes: 0
+      unit: litre
+      tco2e: 0.341
+      srcfr: KBOB / ecobau / IPB  2009/1:2022 avec conversion en litres
+
+    -
+      name: Chauffage à distance (CADIOM)
+      description: 
+      donnes: 0
+      unit: KWh
+      tco2e: 0.2243
+      srcfr: SIG
+
+    -
+      name: Bioénergies (bois déchiqueté ou pellets)
+      description: 
+      donnes: 0
+      unit: KWh
+      tco2e: 0.028
+      srcfr: KBOB / ecobau / IPB  2009/1:2022
+
+-
+  name: Consommation d'électricité
+  description: La consommation d'électricité de bâtiments en kWh
+  item:
+    -
+      name: Mix électricité suisse
+      description: 
+      donnes: 0
+      unit: KWh
+      tco2e: 0.13
+      srcfr: Umweltbilanz Strommixe Schweiz 2018, OFEV
