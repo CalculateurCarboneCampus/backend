@@ -52,3 +52,7 @@ Icon
 # app content
 
 /content/
+
+deno DB scripts
+
+/_tools/output/
