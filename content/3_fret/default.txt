@@ -13,11 +13,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Fret
-  description: 
+  description: |
+    
   item:
     -
       name: Camionette (<3,5t)
-      description: Transport de marchandises en camionette (<3,5t)(8 m3) Diesel/Essence avec une flotte moyenne
+      description: |
+        Transport de marchandises en camionette (<3,5t)(8 m3) Diesel/Essence avec une flotte moyenne
       donnes: 0
       unit: tonneKM
       tco2e: 1.74
@@ -25,7 +27,8 @@ Item:
 
     -
       name: Camion 3,5t-7,5t
-      description: Transport de marchandises en camion 3,5t-7,5t diesel poids moyen
+      description: |
+        Transport de marchandises en camion 3,5t-7,5t diesel poids moyen
       donnes: 0
       unit: tonneKM
       tco2e: 0.54
@@ -33,7 +36,8 @@ Item:
 
     -
       name: Camion 7,5t-16t
-      description: Transport de marchandises en camion 7,5t-16t diesel poids moyen
+      description: |
+        Transport de marchandises en camion 7,5t-16t diesel poids moyen
       donnes: 0
       unit: tonneKM
       tco2e: 0.23
@@ -41,7 +45,8 @@ Item:
 
     -
       name: Camion 16t-32t
-      description: Transport de marchandises en camion diesel poids moyen 16t-32t
+      description: |
+        Transport de marchandises en camion diesel poids moyen 16t-32t
       donnes: 0
       unit: tonneKM
       tco2e: 0.18
@@ -49,7 +54,8 @@ Item:
 
     -
       name: Camion 32t-40t
-      description: Transport de marchandises en camion Diesel poids moyen 32t-40t
+      description: |
+        Transport de marchandises en camion Diesel poids moyen 32t-40t
       donnes: 0
       unit: tonneKM
       tco2e: 0.12
@@ -57,7 +63,8 @@ Item:
 
     -
       name: Semi-remorque (7.5t-16t)
-      description: Transport de marchandises en semi remorque (7.5t-16t) Euro 5 motorisation diesel
+      description: |
+        Transport de marchandises en semi remorque (7.5t-16t) Euro 5 motorisation diesel
       donnes: 0
       unit: tonneKM
       tco2e: 0.2286
@@ -65,7 +72,8 @@ Item:
 
     -
       name: Semi-remorque (16t-32t)
-      description: Transport de marchandises en semi remorque (16t-32t) Euro 5 motorisation diesel
+      description: |
+        Transport de marchandises en semi remorque (16t-32t) Euro 5 motorisation diesel
       donnes: 0
       unit: tonneKM
       tco2e: 0.1797
@@ -73,7 +81,8 @@ Item:
 
     -
       name: Semi-remorque (32t-40t)
-      description: Transport de marchandises en semi remorque (32t-40t) Euro 5 motorisation diesel
+      description: |
+        Transport de marchandises en semi remorque (32t-40t) Euro 5 motorisation diesel
       donnes: 0
       unit: tonneKM
       tco2e: 0.1152
@@ -81,7 +90,8 @@ Item:
 
     -
       name: Train
-      description: Transport de marchansides en train en suisse avec mix électricité CFF avec un peu de diesel
+      description: |
+        Transport de marchansides en train en suisse avec mix électricité CFF avec un peu de diesel
       donnes: 0
       unit: tonneKM
       tco2e: 0.01
@@ -89,7 +99,8 @@ Item:
 
     -
       name: Avion
-      description: Transport de marchandises en avion motorisation kérozène
+      description: |
+        Transport de marchandises en avion motorisation kérozène
       donnes: 0
       unit: tonneKM
       tco2e: 1.5

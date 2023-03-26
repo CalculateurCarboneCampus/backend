@@ -13,11 +13,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Déchets incinérables
-  description: Les déchets incinérables sont les déchets devant être traités par incinération
+  description: |
+    Les déchets incinérables sont les déchets devant être traités par incinération
   item:
     -
       name: Incinérables
-      description: Moyenne suisse de déchets incinérables incluant la collecte (le transport) et le traitement du déchet
+      description: |
+        Moyenne suisse de déchets incinérables incluant la collecte (le transport) et le traitement du déchet
       donnes: 0
       unit: Tonne
       tco2e: 282
@@ -25,15 +27,17 @@ Item:
 
 -
   name:  Recyclages de déchets d'emballages et matériaux
-  description: Les déchets recyclés sont les déchets qui sont traités par des centres de recyclage. Les facteurs d'émissions prennent en compte les étapes allant de la collecte des déchets jusqu'à la sortie du recyclage, à savoir :
--collecte sélective dont bacs/conteneurs, collecte et transfert
--tri en centre de tri
--transport entre le centre de tri et les sites de recyclage/régénération
--recyclage/régénération
+  description: |
+    Les déchets recyclés sont les déchets qui sont traités par des centres de recyclage. Les facteurs d'émissions prennent en compte les étapes allant de la collecte des déchets jusqu'à la sortie du recyclage, à savoir :
+	-collecte sélective dont bacs/conteneurs, collecte et transfert
+	-tri en centre de tri
+	-transport entre le centre de tri et les sites de recyclage/régénération
+	-recyclage/régénération
   item:
     -
       name: Papier
-      description: Recyclage de déchets en papier
+      description: |
+        Recyclage de déchets en papier
       donnes: 0
       unit: Tonne
       tco2e: 33
@@ -41,7 +45,8 @@ Item:
 
     -
       name: Carton 
-      description: Recyclage de déchets en carton
+      description: |
+        Recyclage de déchets en carton
       donnes: 0
       unit: Tonne
       tco2e: 992
@@ -49,7 +54,8 @@ Item:
 
     -
       name: Plastique rigide PET
-      description: Recyclage de déchets d'emballages en plastique rigide PET
+      description: |
+        Recyclage de déchets d'emballages en plastique rigide PET
       donnes: 0
       unit: Tonne
       tco2e: 662
@@ -57,7 +63,8 @@ Item:
 
     -
       name: Verre
-      description: Recyclage de déchets en verre
+      description: |
+        Recyclage de déchets en verre
       donnes: 0
       unit: Tonne
       tco2e: 639
@@ -65,7 +72,8 @@ Item:
 
     -
       name: Aluminium
-      description: Recyclage de déchets en aluminium
+      description: |
+        Recyclage de déchets en aluminium
       donnes: 0
       unit: Tonne
       tco2e: 873

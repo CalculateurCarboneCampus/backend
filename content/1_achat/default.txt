@@ -16,11 +16,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Ratios monétaires, méthode par les prix
-  description: Un facteur d’émissions monétaire permet d’estimer en ordre de grandeur le contenu carbone d’un produit ou service acheté à partir de son prix.
+  description: |
+    Un facteur d’émissions monétaire permet d’estimer en ordre de grandeur le contenu carbone d’un produit ou service acheté à partir de son prix.
   item:
     -
       name: Machines et équipements
-      description: Coûts de machines et équipements pour le projet
+      description: |
+        Coûts de machines et équipements pour le projet
       donnes: 0
       unit: KCHF
       tco2e: 700
@@ -28,7 +30,8 @@ Item:
 
     -
       name: Meubles et autres biens manufacturés
-      description: Coûts des meubles et autres biens manufacturés pour le projet
+      description: |
+        Coûts des meubles et autres biens manufacturés pour le projet
       donnes: 0
       unit: KCHF
       tco2e: 600
@@ -36,7 +39,8 @@ Item:
 
     -
       name: Textile et habillement
-      description: Coûts du textile et habillement pour le projet
+      description: |
+        Coûts du textile et habillement pour le projet
       donnes: 0
       unit: KCHF
       tco2e: 600
@@ -44,7 +48,8 @@ Item:
 
     -
       name: Produits informatiques, électroniques et optiques
-      description: Coûts des produits informatiques, électroniques et optiques pour le projet
+      description: |
+        Coûts des produits informatiques, électroniques et optiques pour le projet
       donnes: 0
       unit: KCHF
       tco2e: 400
@@ -52,11 +57,13 @@ Item:
 
 -
   name: Ratios non monétaires, méthode par les matériaux
-  description: Un facteur d’émissions non monétaire ou physique permet d’estimer le contenu carbone d’un produit ou service acheté à partir des matériaux utilisés ou/et l'énergie consommée pour la fabrication et la livraison du produit ou du service.
+  description: |
+    Un facteur d’émissions non monétaire ou physique permet d’estimer le contenu carbone d’un produit ou service acheté à partir des matériaux utilisés ou/et l'énergie consommée pour la fabrication et la livraison du produit ou du service.
   item:
     -
       name: Acier ou fer-blanc neuf
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 2210
@@ -64,7 +71,8 @@ Item:
 
     -
       name: Acier ou fer-blanc recyclé
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 938
@@ -72,7 +80,8 @@ Item:
 
     -
       name: Aluminium neuf
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 7800
@@ -80,7 +89,8 @@ Item:
 
     -
       name: Aluminium recyclé
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 562
@@ -88,7 +98,8 @@ Item:
 
     -
       name: Divers plastiques neuf
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 2383
@@ -96,7 +107,8 @@ Item:
 
     -
       name: Divers plastiques recyclés
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 202
@@ -104,7 +116,8 @@ Item:
 
     -
       name: Carton neuf
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 390
@@ -112,7 +125,8 @@ Item:
 
     -
       name: Carton recyclé
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 670
@@ -120,7 +134,8 @@ Item:
 
     -
       name: Papier
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 919
@@ -128,7 +143,8 @@ Item:
 
     -
       name: Bois
-      description: 
+      description: |
+        
       donnes: 0
       unit: Tonne
       tco2e: 36.7
@@ -136,7 +152,8 @@ Item:
 
     -
       name: Brique en terre cuite
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.27
@@ -144,7 +161,8 @@ Item:
 
     -
       name: Brique en argile léger 
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.18
@@ -152,7 +170,8 @@ Item:
 
     -
       name: Sable 
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.02
@@ -160,7 +179,8 @@ Item:
 
     -
       name: Gravier concassé
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.02
@@ -168,7 +188,8 @@ Item:
 
     -
       name: Béton maigre
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.06
@@ -176,7 +197,8 @@ Item:
 
     -
       name: Béton pour bâtiment
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 0.1
@@ -184,7 +206,8 @@ Item:
 
     -
       name: Vidéoconférence
-      description: Une vidéoconférence avec électricité mix de consommateurs CH, pendant 1h, par participant
+      description: |
+        Une vidéoconférence avec électricité mix de consommateurs CH, pendant 1h, par participant
       donnes: 0
       unit: heure
       tco2e: 0.04
@@ -192,7 +215,8 @@ Item:
 
     -
       name: email avec pièce jointe
-      description: 
+      description: |
+        
       donnes: 0
       unit: email
       tco2e: 0.04
@@ -200,7 +224,8 @@ Item:
 
     -
       name: Requête internet
-      description: 
+      description: |
+        
       donnes: 0
       unit: requeteInternet
       tco2e: 0.01
@@ -208,7 +233,8 @@ Item:
 
     -
       name: Tablette
-      description: Jour d'utilisation d'une tablette (<10 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'une tablette (<10 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 0.12
@@ -216,7 +242,8 @@ Item:
 
     -
       name: Laptop
-      description: Jour d'utilisation d'un laptop (<ou égal à 14.1 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'un laptop (<ou égal à 14.1 pouces) sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 0.3
@@ -224,7 +251,8 @@ Item:
 
     -
       name: Desktop (standard)
-      description: Jour d'utilisation d'un desktop sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'un desktop sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 0.46
@@ -232,7 +260,8 @@ Item:
 
     -
       name: Imprimante A4 laser Noir & Blanc
-      description: Jour d'utilisation d'une imprimante laser noir et blanc sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'une imprimante laser noir et blanc sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 0.25
@@ -240,7 +269,8 @@ Item:
 
     -
       name: Imprimante A4 laser couleur
-      description: Jour d'utilisation d'une imprimante laser couleur sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'une imprimante laser couleur sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 0.43
@@ -248,7 +278,8 @@ Item:
 
     -
       name: Photocopieurs
-      description: Jour d'utilisation d'une photocopieuse sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
+      description: |
+        Jour d'utilisation d'une photocopieuse sur la base d’une durée de vie standard de 3 ans (660 jours d’utilisation)
       donnes: 0
       unit: jour
       tco2e: 5

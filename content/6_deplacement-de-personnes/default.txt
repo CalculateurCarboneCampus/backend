@@ -13,11 +13,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Domicile-travail
-  description: Les trajets domicile-travail se définissent comme un parcours aller-retour effectué par un salarié pour se rendre de son lieu de travail à son domicile.
+  description: |
+    Les trajets domicile-travail se définissent comme un parcours aller-retour effectué par un salarié pour se rendre de son lieu de travail à son domicile.
   item:
     -
       name: Télétravail
-      description: Un jour à 8h de télétravail avec un approvisionnement du mix de consommateurs CH
+      description: |
+        Un jour à 8h de télétravail avec un approvisionnement du mix de consommateurs CH
       donnes: 0
       unit: heure
       tco2e: 0.26
@@ -25,7 +27,8 @@ Item:
 
     -
       name: Voiture thermique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation moyenne et flotte moyenne
+      description: |
+        Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation moyenne et flotte moyenne
       donnes: 0
       unit: km
       tco2e: 0.3
@@ -33,7 +36,8 @@ Item:
 
     -
       name: Voiture électrique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation électrique et avec mix de consommateurs CH
+      description: |
+        Transport de personnes: local (jusqu'à 5km) en estimant 1,12 personnes par voiture (déplacement travail) avec motorisation électrique et avec mix de consommateurs CH
       donnes: 0
       unit: km
       tco2e: 0.13
@@ -41,7 +45,8 @@ Item:
 
     -
       name: Train
-      description: Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
+      description: |
+        Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -49,7 +54,8 @@ Item:
 
     -
       name: Transport public
-      description: Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
+      description: |
+        Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
       donnes: 0
       unit: km
       tco2e: 0.03
@@ -57,7 +63,8 @@ Item:
 
     -
       name: Autocar
-      description: Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
+      description: |
+        Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
       donnes: 0
       unit: km
       tco2e: 0.06
@@ -65,7 +72,8 @@ Item:
 
     -
       name: Scooter
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
       donnes: 0
       unit: km
       tco2e: 0.1037
@@ -73,7 +81,8 @@ Item:
 
     -
       name: Scooter électrique
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
       donnes: 0
       unit: km
       tco2e: 0.0308
@@ -81,7 +90,8 @@ Item:
 
     -
       name: Moto (250-750ccm)
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
       donnes: 0
       unit: km
       tco2e: 0.14
@@ -89,7 +99,8 @@ Item:
 
     -
       name: Moto (>750cm) 
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
       donnes: 0
       unit: km
       tco2e: 0.15
@@ -97,7 +108,8 @@ Item:
 
     -
       name: Vélo
-      description: Transport local pour une personne à vélo
+      description: |
+        Transport local pour une personne à vélo
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -105,7 +117,8 @@ Item:
 
     -
       name: Vélo à assistance électrique
-      description: Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
+      description: |
+        Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -113,7 +126,8 @@ Item:
 
     -
       name: Avion
-      description: Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
+      description: |
+        Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
       donnes: 0
       unit: km
       tco2e: 0.26
@@ -121,11 +135,13 @@ Item:
 
 -
   name: Déplacements professionnels
-  description: Un déplacement professionnel ou voyage d'affaires a lieu dès lors qu'une personne exerce temporairement une activité professionnelle en dehors de son domicile et de son lieu de travail habituel et doit ainsi se déplacer.
+  description: |
+    Un déplacement professionnel ou voyage d'affaires a lieu dès lors qu'une personne exerce temporairement une activité professionnelle en dehors de son domicile et de son lieu de travail habituel et doit ainsi se déplacer.
   item:
     -
       name: Voiture thermique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
+      description: |
+        Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
       donnes: 0
       unit: km
       tco2e: 0.3
@@ -133,7 +149,8 @@ Item:
 
     -
       name: Voiture électrique
-      description: Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
+      description: |
+        Transport de personnes: local (jusqu'à 5km) en estimant 1,24 personnes par voiture (déplacement activité professionelle) avec motorisation moyenne et flotte moyenne
       donnes: 0
       unit: km
       tco2e: 0.12
@@ -141,7 +158,8 @@ Item:
 
     -
       name: Train
-      description: Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
+      description: |
+        Transport de personnes: national (5km -200km): Moyenne du trafic régional et grandes lignes approvisioné par le mix d'électricité CFF
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -149,7 +167,8 @@ Item:
 
     -
       name: Transport public
-      description: Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
+      description: |
+        Transport de personnes: national (5km -200km): Transport public moyen avec charge moyenne de 159 personnes, soit 29% de charge complète
       donnes: 0
       unit: km
       tco2e: 0.03
@@ -157,7 +176,8 @@ Item:
 
     -
       name: Autocar
-      description: Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
+      description: |
+        Transport de personnes: national (5km -200km): Autocar avec charge moyenne de 21 personnes, soit 42% de charge complète
       donnes: 0
       unit: km
       tco2e: 0.06
@@ -165,7 +185,8 @@ Item:
 
     -
       name: Scooter
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour un scooter avec essence
       donnes: 0
       unit: km
       tco2e: 0.1037
@@ -173,7 +194,8 @@ Item:
 
     -
       name: Scooter électrique
-      description: Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour un scooter électrique avec mix de consommateurs CH
       donnes: 0
       unit: km
       tco2e: 0.0308
@@ -181,7 +203,8 @@ Item:
 
     -
       name: Moto (250-750ccm)
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour une moto 250-750ccm avec essence (flotte moyenne)
       donnes: 0
       unit: km
       tco2e: 0.14
@@ -189,7 +212,8 @@ Item:
 
     -
       name: Moto (>750cm) 
-      description: Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
+      description: |
+        Transport de personnes: local (jusqu'à 5km) pour une moto >750ccm avec essence (flotte moyenne)
       donnes: 0
       unit: km
       tco2e: 0.15
@@ -197,7 +221,8 @@ Item:
 
     -
       name: Vélo
-      description: Transport local pour une personne à vélo
+      description: |
+        Transport local pour une personne à vélo
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -205,7 +230,8 @@ Item:
 
     -
       name: Vélo à assistance électrique
-      description: Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
+      description: |
+        Transport local pour une personne en e-bike avec mix d'électricité des consommateurs CH
       donnes: 0
       unit: km
       tco2e: 0.01
@@ -213,7 +239,8 @@ Item:
 
     -
       name: Avion
-      description: Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
+      description: |
+        Transport international (>200km): Avion avec motorisation kérozène et avec charge moyenne de 215 personnes, soit 81% de la charge complète
       donnes: 0
       unit: km
       tco2e: 0.26
@@ -221,7 +248,8 @@ Item:
 
     -
       name: Hébergements et restauration
-      description: Coût de l'hébergement et de la restauration lors des déplacements professionels
+      description: |
+        Coût de l'hébergement et de la restauration lors des déplacements professionels
       donnes: 0
       unit: KCHF
       tco2e: 320

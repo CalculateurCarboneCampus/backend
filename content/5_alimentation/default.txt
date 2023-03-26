@@ -13,11 +13,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Repas et Boisson
-  description: Les émissions liées à la consommation de nourriture et boisson sont calculées et présentées par repas ou par kilos de produits.
+  description: |
+    Les émissions liées à la consommation de nourriture et boisson sont calculées et présentées par repas ou par kilos de produits.
   item:
     -
       name: Repas - moyen (avec viande)
-      description: Le facteur d'émission d'un repas moyen avec viande est déterminé selon un menu moyen français élaboré avec un ensemble d'aliments consommés par les adultes au déjeuner (en grammes par personne et par jour) 
+      description: |
+        Le facteur d'émission d'un repas moyen avec viande est déterminé selon un menu moyen français élaboré avec un ensemble d'aliments consommés par les adultes au déjeuner (en grammes par personne et par jour) 
       donnes: 0
       unit: repas
       tco2e: 2.04
@@ -25,7 +27,8 @@ Item:
 
     -
       name: Repas - végétarien
-      description: Le facteur d'émission d'un repas végétarien est déterminé selon une approche par un menu prédéfini (soupe de légumes, omelette, salade de fruits) qui sont élaborés de manière à respecter les besoins d’apports journaliers
+      description: |
+        Le facteur d'émission d'un repas végétarien est déterminé selon une approche par un menu prédéfini (soupe de légumes, omelette, salade de fruits) qui sont élaborés de manière à respecter les besoins d’apports journaliers
       donnes: 0
       unit: repas
       tco2e: 0.51
@@ -33,7 +36,8 @@ Item:
 
     -
       name: Vin (blanc, rouge, rosé)
-      description: 
+      description: |
+        
       donnes: 0
       unit: kg
       tco2e: 1.13
@@ -41,7 +45,8 @@ Item:
 
     -
       name: Café
-      description: Café non instantané, non sucré, prêt à boire
+      description: |
+        Café non instantané, non sucré, prêt à boire
       donnes: 0
       unit: kg
       tco2e: 0.57
@@ -49,7 +54,8 @@ Item:
 
     -
       name: Boisson gazeuse
-      description: Boisson gazeuse de tout type (ex: cola, avec ou sans fruit, à teneur réduite en sucres ou sucrée)
+      description: |
+        Boisson gazeuse de tout type (ex: cola, avec ou sans fruit, à teneur réduite en sucres ou sucrée)
       donnes: 0
       unit: kg
       tco2e: 0.57

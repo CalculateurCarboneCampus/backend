@@ -13,11 +13,13 @@ Lifecycleisactive: false
 Item:
 -
   name: Consommation d'énergie chauffage
-  description: La consommation d'énergie pour la production de chaleur pour le chauffage des bâtiments.
+  description: |
+    La consommation d'énergie pour la production de chaleur pour le chauffage des bâtiments.
   item:
     -
       name: Gaz naturel
-      description: 
+      description: |
+        
       donnes: 0
       unit: KWh
       tco2e: 0.23
@@ -25,7 +27,8 @@ Item:
 
     -
       name: Mazout
-      description: 
+      description: |
+        
       donnes: 0
       unit: litre
       tco2e: 0.341
@@ -33,7 +36,8 @@ Item:
 
     -
       name: Chauffage à distance (CADIOM)
-      description: 
+      description: |
+        
       donnes: 0
       unit: KWh
       tco2e: 0.2243
@@ -41,7 +45,8 @@ Item:
 
     -
       name: Bioénergies (bois déchiqueté ou pellets)
-      description: 
+      description: |
+        
       donnes: 0
       unit: KWh
       tco2e: 0.028
@@ -49,11 +54,13 @@ Item:
 
 -
   name: Consommation d'électricité
-  description: La consommation d'électricité de bâtiments en kWh
+  description: |
+    La consommation d'électricité de bâtiments en kWh
   item:
     -
       name: Mix électricité suisse
-      description: 
+      description: |
+        
       donnes: 0
       unit: KWh
       tco2e: 0.13
