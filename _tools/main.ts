@@ -14,12 +14,19 @@ const data = JSON.parse( JSON.parse(text) ) as IUserEditedProject
 
 
 
-data.dataEntity.forEach( (entity, index) => {
+data.dataEntity.forEach( async (entity, index) => {
 
   let kirbyDBText = ''
-  const directoryTitle = `${index + 1}_${entity.entityName.toLowerCase()}`
+  const directoryTitle = `${index + 1}_${entity.entityName
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')}`
 
-  Deno.mkdir(`output/${directoryTitle}/`, {
+  await Deno.mkdir(`output/${directoryTitle}/`, {
     recursive: true,
   })
 
@@ -95,11 +102,11 @@ function kirbyDBFile_itemOfEntitySection({name, description, donnes, unit, tco2e
 }): string {
   return `
     -
-      name: Machines et équipements
-      description: ""
-      donnes: 0
-      unit: KCHF
-      tco2e: 754.6
-      srcfr: Ademe
+      name: ${name}
+      description: ${description}
+      donnes: ${donnes}
+      unit: ${unit}
+      tco2e: ${tco2e}
+      srcfr: ${srcfr}
 `
 }
