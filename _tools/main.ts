@@ -31,26 +31,26 @@ data.dataEntity.forEach( async (entity, index) => {
   })
 
   kirbyDBText += kirbyDBFile_entityText({
-    text: entity.description,
-    lifeCycleIsActive: entity.hasLifeCycleOption,
-    title: entity.entityName
+    text: entity.description || "",
+    lifeCycleIsActive: entity.hasLifeCycleOption || false,
+    title: entity.entityName || "",
   })
 
   for (const entitySection of entity.entitySections) {
 
     kirbyDBText += kirbyDBFile_entitySectionText({
-      name: entitySection.name,
-      description: entitySection.description,
+      name: entitySection.name  || "",
+      description: entitySection.description  || "",
     })
 
     for (const itemOfEntitySection of entitySection.item) {
       kirbyDBText += kirbyDBFile_itemOfEntitySection({
-        name: itemOfEntitySection.name,
-        description: itemOfEntitySection.description,
-        donnes: itemOfEntitySection.donnes,
-        srcfr: itemOfEntitySection.srcfr,
-        tco2e: itemOfEntitySection.tco2e,
-        unit: itemOfEntitySection.unit,
+        name: itemOfEntitySection.name || "",
+        description: itemOfEntitySection.description || "",
+        donnes: itemOfEntitySection.donnes || 0,
+        srcfr: itemOfEntitySection.srcfr || "",
+        tco2e: itemOfEntitySection.tco2e || 0,
+        unit: itemOfEntitySection.unit || "",
       })
     }
   }
