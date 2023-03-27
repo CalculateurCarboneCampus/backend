@@ -29,10 +29,10 @@ Item:
   name:  Recyclages de déchets d'emballages et matériaux
   description: |
     Les déchets recyclés sont les déchets qui sont traités par des centres de recyclage. Les facteurs d'émissions prennent en compte les étapes allant de la collecte des déchets jusqu'à la sortie du recyclage, à savoir :
-	-collecte sélective dont bacs/conteneurs, collecte et transfert
-	-tri en centre de tri
-	-transport entre le centre de tri et les sites de recyclage/régénération
-	-recyclage/régénération
+    -collecte sélective dont bacs/conteneurs, collecte et transfert
+    -tri en centre de tri
+    -transport entre le centre de tri et les sites de recyclage/régénération
+    -recyclage/régénération
   item:
     -
       name: Papier
