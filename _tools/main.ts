@@ -89,7 +89,7 @@ function kirbyDBFile_entitySectionText({name, description}: {
 -
   name: ${name}
   description: |
-    ${description.replace(/\n/g, '\n\t')}
+    ${description.replace(/\n/g, '\n    ')}
   item:`
 }
 
@@ -105,7 +105,7 @@ function kirbyDBFile_itemOfEntitySection({name, description, donnes, unit, tco2e
     -
       name: ${name}
       description: |
-        ${description.replace(/\n/g, '\n\t\t')}
+        ${description.replace(/\n/g, '\n        ')}
       donnes: ${donnes}
       unit: ${unit}
       tco2e: ${tco2e}
