@@ -22,7 +22,7 @@ echo json_encode(
   })->map(function ($value) {
     return [
       'entityName'          => $value->title()->value(),
-      'description'         => $value->text()->value(),
+      'description'         => $value->text()->kirbytext()->value(),
       'entitySections'      => $value->item()->toStructure()->toArray(),
       'hasLifeCycleOption'  => $value->lifeCycleIsActive()->toBool(),
     ];
