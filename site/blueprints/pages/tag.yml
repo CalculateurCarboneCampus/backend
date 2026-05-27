@@ -1,0 +1,22 @@
+title: Catégorie de matériaux
+icon: tag
+num: 0
+
+create:
+  status: listed
+
+options:
+  changeStatus: false
+  changeTemplate: false
+  preview: false
+  changeSlug: false
+
+columns:
+  main:
+    width: 1/1
+    fields:
+      infos:
+        label: Tag
+        type: info
+        theme: text
+        text: 'Ceci est un tag'

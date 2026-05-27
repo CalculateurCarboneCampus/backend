@@ -1,2 +1,26 @@
-preset: pages
-unlisted: false
+title: Site
+
+
+columns:
+  - width: 1/3
+    sections:
+      tags:
+        label: Les tags
+        type: pages
+        template:
+          - tags
+        status: listed
+        image:
+          back: white
+          query: false
+
+  - width: 2/3
+    sections:
+      pages:
+        label: Pages
+        type: pages
+        status: listed
+        templates:
+          - default
+        templatesIgnore:
+          - defaultProjectData

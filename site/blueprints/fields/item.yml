@@ -48,3 +48,11 @@ fields:
     label: Sources FE
     type: text
     width: 1/2
+
+  tags:
+    label: Filtre du matériel par champs
+    type: pages
+    query: site.find('liste-des-categories-de-materiaux').childrenAndDrafts
+    multiple: true
+    width: 1/2
+
