@@ -38,7 +38,8 @@ fields:
       email: email
       requeteInternet: requête internet
   tCO2e:
-    label: tCO2e
+#    label: tCO2e
+    label: kgCO2e
     type: number
     after: CO2e
     step: 0.0001
