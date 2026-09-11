@@ -5,7 +5,11 @@ namespace Kirby\Cms;
 /**
  * Converts the data from the old builder and editor fields
  * to the format supported by the new block field.
- * @since 3.5.0
+ * @since 3.9.0
+ * @deprecated
+ *
+ * @todo block.converter remove eventually
+ * @codeCoverageIgnore
  *
  * @package   Kirby Cms
  * @author    Bastian Allgeier <bastian@getkirby.com>
@@ -15,266 +19,267 @@ namespace Kirby\Cms;
  */
 class BlockConverter
 {
-    public static function builderBlock(array $params): array
-    {
-        if (isset($params['_key']) === false) {
-            return $params;
-        }
+	public static function builderBlock(array $params): array
+	{
+		if (isset($params['_key']) === false) {
+			return $params;
+		}
 
-        $params['type']    = $params['_key'];
-        $params['content'] = $params;
-        unset($params['_uid']);
+		$ignore = array_flip(['field', 'options', 'parent', 'siblings', 'params', '_key', '_uid']);
+		$params['content'] = array_diff_key($params, $ignore);
+		$params['type']    = $params['_key'];
 
-        return $params;
-    }
+		unset($params['_uid']);
 
-    public static function editorBlock(array $params): array
-    {
-        if (static::isEditorBlock($params) === false) {
-            return $params;
-        }
+		return $params;
+	}
 
-        $method = 'editor' . $params['type'];
+	public static function editorBlock(array $params): array
+	{
+		if (static::isEditorBlock($params) === false) {
+			return $params;
+		}
 
-        if (method_exists(static::class, $method) === true) {
-            $params = static::$method($params);
-        } else {
-            $params = static::editorCustom($params);
-        }
+		$method = 'editor' . $params['type'];
 
-        return $params;
-    }
+		if (method_exists(static::class, $method) === true) {
+			$params = static::$method($params);
+		} else {
+			$params = static::editorCustom($params);
+		}
 
-    public static function editorBlocks(array $blocks = []): array
-    {
-        if (empty($blocks) === true) {
-            return $blocks;
-        }
+		return $params;
+	}
 
-        if (static::isEditorBlock($blocks[0]) === false) {
-            return $blocks;
-        }
+	public static function editorBlocks(array $blocks = []): array
+	{
+		if ($blocks === []) {
+			return $blocks;
+		}
 
-        $list = [];
-        $listStart = null;
+		if (static::isEditorBlock($blocks[0]) === false) {
+			return $blocks;
+		}
 
-        foreach ($blocks as $index => $block) {
-            if (in_array($block['type'], ['ul', 'ol']) === true) {
-                $prev = $blocks[$index-1] ?? null;
-                $next = $blocks[$index+1] ?? null;
+		$list = [];
+		$listStart = null;
 
-                // new list starts here
-                if (!$prev || $prev['type'] !== $block['type']) {
-                    $listStart = $index;
-                }
+		foreach ($blocks as $index => $block) {
+			if (in_array($block['type'], ['ul', 'ol'], true) === true) {
+				$prev = $blocks[$index - 1] ?? null;
+				$next = $blocks[$index + 1] ?? null;
 
-                // add the block to the list
-                $list[] = $block;
+				// new list starts here
+				if (!$prev || $prev['type'] !== $block['type']) {
+					$listStart = $index;
+				}
 
-                // list ends here
-                if (!$next || $next['type'] !== $block['type']) {
-                    $blocks[$listStart] = [
-                        'content' => [
-                            'text' =>
-                                '<' . $block['type'] . '>' .
-                                    implode(array_map(function ($item) {
-                                        return '<li>' . $item['content'] . '</li>';
-                                    }, $list)) .
-                                '</' . $block['type'] . '>',
-                        ],
-                        'type' => 'list'
-                    ];
+				// add the block to the list
+				$list[] = $block;
 
-                    $start = $listStart + 1;
-                    $end   = $listStart + count($list);
+				// list ends here
+				if (!$next || $next['type'] !== $block['type']) {
+					$blocks[$listStart] = [
+						'content' => [
+							'text' =>
+								'<' . $block['type'] . '>' .
+									implode(array_map(
+										fn ($item) => '<li>' . $item['content'] . '</li>',
+										$list
+									)) .
+								'</' . $block['type'] . '>',
+						],
+						'type' => 'list'
+					];
 
-                    for ($x = $start; $x <= $end; $x++) {
-                        $blocks[$x] = false;
-                    }
+					$start = $listStart + 1;
+					$end   = $listStart + count($list);
 
-                    $listStart = null;
-                    $list = [];
-                }
-            } else {
-                $blocks[$index] = static::editorBlock($block);
-            }
-        }
+					for ($x = $start; $x <= $end; $x++) {
+						$blocks[$x] = false;
+					}
 
-        return array_filter($blocks);
-    }
+					$listStart = null;
+					$list = [];
+				}
+			} else {
+				$blocks[$index] = static::editorBlock($block);
+			}
+		}
 
-    public static function editorBlockquote(array $params): array
-    {
-        return [
-            'content' => [
-                'text' => $params['content']
-            ],
-            'type' => 'quote'
-        ];
-    }
+		return array_filter($blocks);
+	}
 
-    public static function editorCode(array $params): array
-    {
-        return [
-            'content' => [
-                'language' => $params['attrs']['language'] ?? null,
-                'code'     => $params['content']
-            ],
-            'type' => 'code'
-        ];
-    }
+	public static function editorBlockquote(array $params): array
+	{
+		return [
+			'content' => [
+				'text' => $params['content']
+			],
+			'type' => 'quote'
+		];
+	}
 
-    public static function editorCustom(array $params): array
-    {
-        return [
-            'content' => array_merge(
-                $params['attrs'] ?? [],
-                [
-                    'body' => $params['content'] ?? null
-                ]
-            ),
-            'type' => $params['type'] ?? 'unknown'
-        ];
-    }
+	public static function editorCode(array $params): array
+	{
+		return [
+			'content' => [
+				'language' => $params['attrs']['language'] ?? null,
+				'code'     => $params['content']
+			],
+			'type' => 'code'
+		];
+	}
 
-    public static function editorH1(array $params): array
-    {
-        return static::editorHeading($params, 'h1');
-    }
+	public static function editorCustom(array $params): array
+	{
+		return [
+			'content' => [
+				...$params['attrs'] ?? [],
+				'body' => $params['content'] ?? null
+			],
+			'type' => $params['type'] ?? 'unknown'
+		];
+	}
 
-    public static function editorH2(array $params): array
-    {
-        return static::editorHeading($params, 'h2');
-    }
+	public static function editorH1(array $params): array
+	{
+		return static::editorHeading($params, 'h1');
+	}
 
-    public static function editorH3(array $params): array
-    {
-        return static::editorHeading($params, 'h3');
-    }
+	public static function editorH2(array $params): array
+	{
+		return static::editorHeading($params, 'h2');
+	}
 
-    public static function editorH4(array $params): array
-    {
-        return static::editorHeading($params, 'h4');
-    }
+	public static function editorH3(array $params): array
+	{
+		return static::editorHeading($params, 'h3');
+	}
 
-    public static function editorH5(array $params): array
-    {
-        return static::editorHeading($params, 'h5');
-    }
+	public static function editorH4(array $params): array
+	{
+		return static::editorHeading($params, 'h4');
+	}
 
-    public static function editorH6(array $params): array
-    {
-        return static::editorHeading($params, 'h6');
-    }
+	public static function editorH5(array $params): array
+	{
+		return static::editorHeading($params, 'h5');
+	}
 
-    public static function editorHr(array $params): array
-    {
-        return [
-            'content' => [],
-            'type'    => 'line'
-        ];
-    }
+	public static function editorH6(array $params): array
+	{
+		return static::editorHeading($params, 'h6');
+	}
 
-    public static function editorHeading(array $params, string $level): array
-    {
-        return [
-            'content' => [
-                'level' => $level,
-                'text'  => $params['content']
-            ],
-            'type' => 'heading'
-        ];
-    }
+	public static function editorHr(array $params): array
+	{
+		return [
+			'content' => [],
+			'type'    => 'line'
+		];
+	}
 
-    public static function editorImage(array $params): array
-    {
-        // internal image
-        if (isset($params['attrs']['id']) === true) {
-            return [
-                'content' => [
-                    'alt'      => $params['attrs']['alt'] ?? null,
-                    'caption'  => $params['attrs']['caption'] ?? null,
-                    'image'    => $params['attrs']['id'] ?? $params['attrs']['src'] ?? null,
-                    'location' => 'kirby',
-                    'ratio'    => $params['attrs']['ratio'] ?? null,
-                ],
-                'type' => 'image'
-            ];
-        }
+	public static function editorHeading(array $params, string $level = 'h1'): array
+	{
+		return [
+			'content' => [
+				'level' => $level,
+				'text'  => $params['content']
+			],
+			'type' => 'heading'
+		];
+	}
 
-        return [
-            'content' => [
-                'alt'      => $params['attrs']['alt'] ?? null,
-                'caption'  => $params['attrs']['caption'] ?? null,
-                'src'      => $params['attrs']['src'] ?? null,
-                'location' => 'web',
-                'ratio'    => $params['attrs']['ratio'] ?? null,
-            ],
-            'type' => 'image'
-        ];
-    }
+	public static function editorImage(array $params): array
+	{
+		// internal image
+		if (isset($params['attrs']['id']) === true) {
+			return [
+				'content' => [
+					'alt'      => $params['attrs']['alt'] ?? null,
+					'caption'  => $params['attrs']['caption'] ?? null,
+					'image'    => $params['attrs']['id'] ?? $params['attrs']['src'] ?? null,
+					'location' => 'kirby',
+					'ratio'    => $params['attrs']['ratio'] ?? null,
+				],
+				'type' => 'image'
+			];
+		}
 
-    public static function editorKirbytext(array $params): array
-    {
-        return [
-            'content' => [
-                'text' => $params['content']
-            ],
-            'type' => 'markdown'
-        ];
-    }
+		return [
+			'content' => [
+				'alt'      => $params['attrs']['alt'] ?? null,
+				'caption'  => $params['attrs']['caption'] ?? null,
+				'src'      => $params['attrs']['src'] ?? null,
+				'location' => 'web',
+				'ratio'    => $params['attrs']['ratio'] ?? null,
+			],
+			'type' => 'image'
+		];
+	}
 
-    public static function editorOl(array $params): array
-    {
-        return [
-            'content' => [
-                'text' => $params['content']
-            ],
-            'type' => 'list'
-        ];
-    }
+	public static function editorKirbytext(array $params): array
+	{
+		return [
+			'content' => [
+				'text' => $params['content']
+			],
+			'type' => 'markdown'
+		];
+	}
 
-    public static function editorParagraph(array $params): array
-    {
-        return [
-            'content' => [
-                'text' => '<p>' . $params['content'] . '</p>'
-            ],
-            'type' => 'text'
-        ];
-    }
+	public static function editorOl(array $params): array
+	{
+		return [
+			'content' => [
+				'text' => $params['content']
+			],
+			'type' => 'list'
+		];
+	}
 
-    public static function editorUl(array $params): array
-    {
-        return [
-            'content' => [
-                'text' => $params['content']
-            ],
-            'type' => 'list'
-        ];
-    }
+	public static function editorParagraph(array $params): array
+	{
+		return [
+			'content' => [
+				'text' => '<p>' . $params['content'] . '</p>'
+			],
+			'type' => 'text'
+		];
+	}
 
-    public static function editorVideo(array $params): array
-    {
-        return [
-            'content' => [
-                'caption' => $params['attrs']['caption'] ?? null,
-                'url'     => $params['attrs']['src'] ?? null
-            ],
-            'type' => 'video'
-        ];
-    }
+	public static function editorUl(array $params): array
+	{
+		return [
+			'content' => [
+				'text' => $params['content']
+			],
+			'type' => 'list'
+		];
+	}
 
-    public static function isEditorBlock(array $params): bool
-    {
-        if (isset($params['attrs']) === true) {
-            return true;
-        }
+	public static function editorVideo(array $params): array
+	{
+		return [
+			'content' => [
+				'caption' => $params['attrs']['caption'] ?? null,
+				'url'     => $params['attrs']['src'] ?? null
+			],
+			'type' => 'video'
+		];
+	}
 
-        if (is_string($params['content'] ?? null) === true) {
-            return true;
-        }
+	public static function isEditorBlock(array $params): bool
+	{
+		if (isset($params['attrs']) === true) {
+			return true;
+		}
 
-        return false;
-    }
+		if (is_string($params['content'] ?? null) === true) {
+			return true;
+		}
+
+		return false;
+	}
 }

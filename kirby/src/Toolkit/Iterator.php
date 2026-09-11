@@ -3,6 +3,8 @@
 namespace Kirby\Toolkit;
 
 use ArrayIterator;
+use Countable;
+use Iterator as PhpIterator;
 use IteratorAggregate;
 
 /**
@@ -13,169 +15,161 @@ use IteratorAggregate;
  * @package   Kirby Toolkit
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
+ *
+ * @template TKey of array-key
+ * @template TValue
+ * @implements \IteratorAggregate<TKey, TValue>
  */
-class Iterator implements IteratorAggregate
+class Iterator implements Countable, IteratorAggregate
 {
-    /**
-     * The data array
-     *
-     * @var array
-     */
-    public $data = [];
+	/**
+	 * @var array<TKey, TValue>
+	 */
+	public array $data = [];
 
-    /**
-     * Constructor
-     *
-     * @param array $data
-     */
-    public function __construct(array $data = [])
-    {
-        $this->data = $data;
-    }
+	public function __construct(array $data = [])
+	{
+		$this->data = $data;
+	}
 
-    /**
-     * Get an iterator for the items.
-     *
-     * @return \ArrayIterator
-     */
-    public function getIterator(): ArrayIterator
-    {
-        return new ArrayIterator($this->data);
-    }
+	/**
+	 * Returns an iterator for the elements
+	 * @return \ArrayIterator<TKey, TValue>
+	 */
+	public function getIterator(): PhpIterator
+	{
+		return new ArrayIterator($this->data);
+	}
 
-    /**
-     * Returns the current key
-     *
-     * @return string
-     */
-    public function key()
-    {
-        return key($this->data);
-    }
+	/**
+	 * Returns the current key
+	 * @deprecated
+	 * @todo Remove in v6
+	 */
+	public function key(): int|string|null
+	{
+		return key($this->data);
+	}
 
-    /**
-     * Returns an array of all keys
-     *
-     * @return array
-     */
-    public function keys(): array
-    {
-        return array_keys($this->data);
-    }
+	/**
+	 * Returns an array of all keys
+	 */
+	public function keys(): array
+	{
+		return array_keys($this->data);
+	}
 
-    /**
-     * Returns the current element
-     *
-     * @return mixed
-     */
-    public function current()
-    {
-        return current($this->data);
-    }
+	/**
+	 * Returns the current element
+	 * @deprecated
+	 * @todo Remove in v6
+	 * @return TValue
+	 */
+	public function current(): mixed
+	{
+		return current($this->data);
+	}
 
-    /**
-     * Moves the cursor to the previous element
-     * and returns it
-     *
-     * @return mixed
-     */
-    public function prev()
-    {
-        return prev($this->data);
-    }
+	/**
+	 * Moves the cursor to the previous element
+	 * and returns it
+	 * @deprecated
+	 * @todo Remove in v6
+	 * @return TValue
+	 */
+	public function prev(): mixed
+	{
+		return prev($this->data);
+	}
 
-    /**
-     * Moves the cursor to the next element
-     * and returns it
-     *
-     * @return mixed
-     */
-    public function next()
-    {
-        return next($this->data);
-    }
+	/**
+	 * Moves the cursor to the next element
+	 * and returns it
+	 * @deprecated
+	 * @todo Remove in v6
+	 * @return TValue
+	 */
+	public function next(): mixed
+	{
+		return next($this->data);
+	}
 
-    /**
-     * Moves the cursor to the first element
-     */
-    public function rewind()
-    {
-        reset($this->data);
-    }
+	/**
+	 * Moves the cursor to the first element
+	 * @deprecated
+	 * @todo Remove in v6
+	 */
+	public function rewind(): void
+	{
+		reset($this->data);
+	}
 
-    /**
-     * Checks if the current element is valid
-     *
-     * @return bool
-     */
-    public function valid(): bool
-    {
-        return $this->current() !== false;
-    }
+	/**
+	 * Checks if the current element is valid
+	 * @deprecated
+	 * @todo Remove in v6
+	 */
+	public function valid(): bool
+	{
+		return $this->current() !== false;
+	}
 
-    /**
-     * Counts all elements
-     *
-     * @return int
-     */
-    public function count(): int
-    {
-        return count($this->data);
-    }
+	/**
+	 * Counts all elements
+	 */
+	public function count(): int
+	{
+		return count($this->data);
+	}
 
-    /**
-     * Tries to find the index number for the given element
-     *
-     * @param mixed $needle the element to search for
-     * @return int|false the index (int) of the element or false
-     */
-    public function indexOf($needle)
-    {
-        return array_search($needle, array_values($this->data));
-    }
+	/**
+	 * Tries to find the index number for the given element
+	 *
+	 * @param TValue $needle the element to search for
+	 * @return int|false the index (int) of the element or false
+	 */
+	public function indexOf(mixed $needle): int|false
+	{
+		return array_search($needle, array_values($this->data));
+	}
 
-    /**
-     * Tries to find the key for the given element
-     *
-     * @param mixed $needle the element to search for
-     * @return string|false the name of the key or false
-     */
-    public function keyOf($needle)
-    {
-        return array_search($needle, $this->data);
-    }
+	/**
+	 * Tries to find the key for the given element
+	 *
+	 * @param TValue $needle the element to search for
+	 * @return int|string|false the name of the key or false
+	 */
+	public function keyOf(mixed $needle): int|string|false
+	{
+		return array_search($needle, $this->data);
+	}
 
-    /**
-     * Checks by key if an element is included
-     *
-     * @param mixed $key
-     * @return bool
-     */
-    public function has($key): bool
-    {
-        return isset($this->data[$key]);
-    }
+	/**
+	 * Checks by key if an element is included
+	 * @param TKey $key
+	 */
+	public function has(mixed $key): bool
+	{
+		return array_key_exists($key, $this->data) === true;
+	}
 
-    /**
-     * Checks if the current key is set
-     *
-     * @param mixed $key the key to check
-     * @return bool
-     */
-    public function __isset($key): bool
-    {
-        return $this->has($key);
-    }
+	/**
+	 * Checks if the current key is set
+	 * @param TKey $key
+	 */
+	public function __isset(mixed $key): bool
+	{
+		return $this->has($key);
+	}
 
-    /**
-     * Simplified var_dump output
-     *
-     * @return array
-     */
-    public function __debugInfo(): array
-    {
-        return $this->data;
-    }
+	/**
+	 * Simplified var_dump output
+	 * @codeCoverageIgnore
+	 */
+	public function __debugInfo(): array
+	{
+		return $this->data;
+	}
 }

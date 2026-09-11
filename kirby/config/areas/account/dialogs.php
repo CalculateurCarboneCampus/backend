@@ -1,70 +1,65 @@
 <?php
 
+use Kirby\Panel\UserTotpEnableDialog;
+
 $dialogs = require __DIR__ . '/../users/dialogs.php';
 
 return [
-
-    // change email
-    'account.changeEmail' => [
-        'pattern' => '(account)/changeEmail',
-        'load'    => $dialogs['user.changeEmail']['load'],
-        'submit'  => $dialogs['user.changeEmail']['submit'],
-    ],
-
-    // change language
-    'account.changeLanguage' => [
-        'pattern' => '(account)/changeLanguage',
-        'load'    => $dialogs['user.changeLanguage']['load'],
-        'submit'  => $dialogs['user.changeLanguage']['submit'],
-    ],
-
-    // change name
-    'account.changeName' => [
-        'pattern' => '(account)/changeName',
-        'load'    => $dialogs['user.changeName']['load'],
-        'submit'  => $dialogs['user.changeName']['submit'],
-    ],
-
-    // change password
-    'account.changePassword' => [
-        'pattern' => '(account)/changePassword',
-        'load'    => $dialogs['user.changePassword']['load'],
-        'submit'  => $dialogs['user.changePassword']['submit'],
-    ],
-
-    // change role
-    'account.changeRole' => [
-        'pattern' => '(account)/changeRole',
-        'load'    => $dialogs['user.changeRole']['load'],
-        'submit'  => $dialogs['user.changeRole']['submit'],
-    ],
-
-    // delete
-    'account.delete' => [
-        'pattern' => '(account)/delete',
-        'load'    => $dialogs['user.delete']['load'],
-        'submit'  => $dialogs['user.delete']['submit'],
-    ],
-
-    // change file name
-    'account.file.changeName' => [
-        'pattern' => '(account)/files/(:any)/changeName',
-        'load'    => $dialogs['user.file.changeName']['load'],
-        'submit'  => $dialogs['user.file.changeName']['submit'],
-    ],
-
-    // change file sort
-    'account.file.changeSort' => [
-        'pattern' => '(account)/files/(:any)/changeSort',
-        'load'    => $dialogs['user.file.changeSort']['load'],
-        'submit'  => $dialogs['user.file.changeSort']['submit'],
-    ],
-
-    // delete
-    'account.file.delete' => [
-        'pattern' => '(account)/files/(:any)/delete',
-        'load'    => $dialogs['user.file.delete']['load'],
-        'submit'  => $dialogs['user.file.delete']['submit'],
-    ],
-
+	'account.changeEmail' => [
+		...$dialogs['user.changeEmail'],
+		'pattern' => '(account)/changeEmail',
+	],
+	'account.changeLanguage' => [
+		...$dialogs['user.changeLanguage'],
+		'pattern' => '(account)/changeLanguage',
+	],
+	'account.changeName' => [
+		...$dialogs['user.changeName'],
+		'pattern' => '(account)/changeName',
+	],
+	'account.changePassword' => [
+		...$dialogs['user.changePassword'],
+		'pattern' => '(account)/changePassword',
+	],
+	'account.changeRole' => [
+		...$dialogs['user.changeRole'],
+		'pattern' => '(account)/changeRole',
+	],
+	'account.delete' => [
+		...$dialogs['user.delete'],
+		'pattern' => '(account)/delete',
+	],
+	'account.fields' => [
+		...$dialogs['user.fields'],
+		'pattern' => '(account)/fields/(:any)/(:all?)',
+	],
+	'account.file.changeName' => [
+		...$dialogs['user.file.changeName'],
+		'pattern' => '(account)/files/(:any)/changeName',
+	],
+	'account.file.changeSort' => [
+		...$dialogs['user.file.changeSort'],
+		'pattern' => '(account)/files/(:any)/changeSort',
+	],
+	'account.file.changeTemplate' => [
+		...$dialogs['user.file.changeTemplate'],
+		'pattern' => '(account)/files/(:any)/changeTemplate',
+	],
+	'account.file.delete' => [
+		...$dialogs['user.file.delete'],
+		'pattern' => '(account)/files/(:any)/delete',
+	],
+	'account.file.fields' => [
+		...$dialogs['user.file.fields'],
+		'pattern' => '(account)/files/(:any)/fields/(:any)/(:all?)',
+	],
+	'account.totp.enable' => [
+		'pattern' => '(account)/totp/enable',
+		'load'    => fn () => (new UserTotpEnableDialog())->load(),
+		'submit'  => fn () => (new UserTotpEnableDialog())->submit()
+	],
+	'account.totp.disable' => [
+		...$dialogs['user.totp.disable'],
+		'pattern' => '(account)/totp/disable',
+	],
 ];

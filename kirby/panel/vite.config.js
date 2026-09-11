@@ -1,112 +1,175 @@
 /* eslint-env node */
-import fs from "fs";
 import path from "path";
-import { defineConfig } from "vite";
-import { createVuePlugin } from "vite-plugin-vue2";
-import postcssAutoprefixer from "autoprefixer";
-import postcssCsso from "postcss-csso";
-import postcssDirPseudoClass from "postcss-dir-pseudo-class";
-import postcssLogical from "postcss-logical";
-import pluginRewriteAll from "vite-plugin-rewrite-all";
 
-let custom;
-try {
-  custom = require("./vite.config.custom.js");
-} catch (err) {
-  custom = {};
+import { defineConfig, loadEnv } from "vite";
+import { minify } from "terser";
+import vue from "@vitejs/plugin-vue2";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import kirby from "./scripts/vite-kirby";
+import postcssLightDarkFunction from "@csstools/postcss-light-dark-function";
+
+/**
+ * Returns all aliases used in the project
+ */
+function createAliases(proxy) {
+	const aliases = {
+		"@": path.resolve(__dirname, "src")
+	};
+
+	if (!process.env.VITEST) {
+		// use absolute proxied url to avoid Vue being loaded twice
+		aliases.vue =
+			proxy.target + ":3000/node_modules/vue/dist/vue.esm.browser.js";
+	}
+
+	return aliases;
 }
 
-export default defineConfig(({ command }) => {
-  // Tell Kirby that we are in dev mode
-  if (command === "serve") {
-    // Create the flag file on start
-    const runningPath = __dirname + "/.vite-running";
-    fs.closeSync(fs.openSync(runningPath, "w"));
+/**
+ * Returns the server configuration
+ */
+async function createServer(proxy) {
+	return {
+		allowedHosts: [proxy.target.substring(8)],
+		cors: { origin: proxy.target },
+		proxy: {
+			"/api": proxy,
+			"/env": proxy,
+			"/media": proxy
+		},
+		open: proxy.target + "/panel",
+		port: 3000,
+		...(await createCustomServer())
+	};
+}
 
-    // Delete the flag file on any kind of exit
-    for (const eventType of ["exit", "SIGINT", "uncaughtException"]) {
-      process.on(eventType, function (err) {
-        if (fs.existsSync(runningPath) === true) {
-          fs.unlinkSync(runningPath);
-        }
+/**
+ * Returns custom server configuration, if it exists
+ */
+async function createCustomServer() {
+	try {
+		const module = await import("./vite.config.custom.js");
+		return module.default ?? {};
+	} catch {
+		return {};
+	}
+}
 
-        if (eventType === "uncaughtException") {
-          console.error(err);
-        }
+/**
+ * Returns an array of plugins used,
+ * depending on the mode (development or build)
+ */
+function createPlugins(mode) {
+	const plugins = [vue(), kirby()];
 
-        process.exit();
-      });
-    }
-  }
+	// when building…
+	if (mode === "production") {
+		//copy Vue to the dist directory
+		plugins.push(
+			viteStaticCopy({
+				targets: [
+					{
+						src: "node_modules/vue/dist/vue.runtime.esm.js",
+						dest: "js",
+						rename: "vue.runtime.esm.min.js",
+						// TODO: we can simplify this in Vue 3 as a minified version
+						// is provided by Vue itself by default
+						transform: async (content) => {
+							content = content.replaceAll(
+								"process.env.NODE_ENV",
+								"'production'"
+							);
+							const minified = await minify(content);
+							return minified.code;
+						}
+					},
+					{
+						src: "node_modules/vue/dist/vue.esm.browser.min.js",
+						dest: "js"
+					},
+					// Also copy the non-minified version to the dist folder as
+					// we will expose this for plugins in dev mode with Vue 3
+					{
+						src: "node_modules/vue/dist/vue.esm.browser.js",
+						dest: "js"
+					}
+				]
+			})
+		);
+	}
 
-  const proxy = {
-    target: process.env.VUE_APP_DEV_SERVER || "http://sandbox.test",
-    changeOrigin: true,
-    secure: false
-  };
+	return plugins;
+}
 
-  return {
-    plugins: [createVuePlugin(), pluginRewriteAll()],
-    define: {
-      // Fix vuelidate error
-      "process.env.BUILD": JSON.stringify("production")
-    },
-    build: {
-      minify: "terser",
-      cssCodeSplit: false,
-      rollupOptions: {
-        input: "./src/index.js",
-        output: {
-          entryFileNames: "js/[name].js",
-          chunkFileNames: "js/[name].js",
-          assetFileNames: "[ext]/[name].[ext]"
-        }
-      }
-    },
-    optimizeDeps: {
-      entries: "src/**/*.{js,vue}"
-    },
-    css: {
-      postcss: {
-        plugins: [
-          postcssLogical(),
-          postcssDirPseudoClass(),
-          postcssCsso(),
-          postcssAutoprefixer()
-        ]
-      }
-    },
-    resolve: {
-      alias: [
-        {
-          find: "vue",
-          replacement: "vue/dist/vue.esm.js"
-        },
-        {
-          find: "@",
-          replacement: path.resolve(__dirname, "src")
-        }
-      ]
-    },
-    server: {
-      proxy: {
-        "/api": proxy,
-        "/env": proxy,
-        "/media": proxy
-      },
-      ...custom
-    },
-    test: {
-      environment: "jsdom",
-      include: ["**/*.test.js"],
-      coverage: {
-        all: true,
-        exclude: ["**/*.e2e.js", "**/*.test.js"],
-        extension: ["js", "vue"],
-        src: "src",
-        reporter: ["text", "lcov"]
-      },
-      setupFiles: ["vitest.setup.js"]
-    }
-  };
+/**
+ * Returns vitest configuration
+ */
+function createTest() {
+	return {
+		environment: "node",
+		include: ["**/*.test.js"],
+		setupFiles: ["vitest.setup.js"]
+	};
+}
+
+/**
+ * Returns the Vite configuration
+ */
+export default defineConfig(async ({ mode }) => {
+	// Load env file based on `mode` in the current working directory.
+	// Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
+	process.env = {
+		...process.env,
+		...loadEnv(mode, process.cwd(), "")
+	};
+
+	const proxy = {
+		target: process.env.SERVER ?? "https://sandbox.test",
+		changeOrigin: true,
+		secure: false
+	};
+
+	return {
+		plugins: createPlugins(mode),
+		base: "./",
+		build: {
+			minify: "terser",
+			cssCodeSplit: false,
+			rollupOptions: {
+				external: ["vue"],
+				input: "./src/index.js",
+				output: {
+					entryFileNames: "js/[name].min.js",
+					chunkFileNames: "js/[name].min.js",
+					assetFileNames: "[ext]/[name].min.[ext]",
+					manualChunks(id) {
+						if (id.includes("sortablejs")) {
+							return "sortable";
+						}
+
+						if (id.includes("node_modules")) {
+							return "vendor";
+						}
+
+						return null;
+					}
+				}
+			}
+		},
+		css: {
+			postcss: {
+				plugins: [postcssLightDarkFunction()]
+			}
+		},
+		optimizeDeps: {
+			entries: "src/**/*.{js,vue}",
+			exclude: ["vitest", "vue"],
+			holdUntilCrawlEnd: false
+		},
+		resolve: {
+			alias: createAliases(proxy)
+		},
+		server: await createServer(proxy),
+		test: createTest()
+	};
 });

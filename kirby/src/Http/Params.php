@@ -2,7 +2,9 @@
 
 namespace Kirby\Http;
 
+use Kirby\Toolkit\Obj;
 use Kirby\Toolkit\Str;
+use Stringable;
 
 /**
  * A wrapper around a URL params
@@ -12,144 +14,159 @@ use Kirby\Toolkit\Str;
  * @package   Kirby Http
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
-class Params extends Query
+class Params extends Obj implements Stringable
 {
-    /**
-     * @var null|string
-     */
-    public static $separator;
+	public static string|null $separator = null;
 
-    /**
-     * Creates a new params object
-     *
-     * @param array|string $params
-     */
-    public function __construct($params)
-    {
-        if (is_string($params) === true) {
-            $params = static::extract($params)['params'];
-        }
+	/**
+	 * Creates a new params object
+	 */
+	public function __construct(array|string|null $params)
+	{
+		if (is_string($params) === true) {
+			$params = static::extract($params)['params'];
+		}
 
-        parent::__construct($params ?? []);
-    }
+		parent::__construct($params ?? []);
+	}
 
-    /**
-     * Extract the params from a string or array
-     *
-     * @param string|array|null $path
-     * @return array
-     */
-    public static function extract($path = null): array
-    {
-        if (empty($path) === true) {
-            return [
-                'path'   => null,
-                'params' => null,
-                'slash'  => false
-            ];
-        }
+	/**
+	 * Extract the params from a string or array
+	 */
+	public static function extract(string|array|null $path = null): array
+	{
+		if ($path === null || $path === '' || $path === []) {
+			return [
+				'path'   => null,
+				'params' => null,
+				'slash'  => false
+			];
+		}
 
-        $slash = false;
+		$slash = false;
 
-        if (is_string($path) === true) {
-            $slash = substr($path, -1, 1) === '/';
-            $path  = Str::split($path, '/');
-        }
+		if (is_string($path) === true) {
+			$slash = str_ends_with($path, '/') === true;
+			$path  = Str::split($path, '/');
+		}
 
-        if (is_array($path) === true) {
-            $params    = [];
-            $separator = static::separator();
+		if (is_array($path) === true) {
+			$params    = [];
+			$separator = static::separator();
 
-            foreach ($path as $index => $p) {
-                if (strpos($p, $separator) === false) {
-                    continue;
-                }
+			foreach ($path as $index => $p) {
+				if (str_contains($p, $separator) === false) {
+					continue;
+				}
 
-                $paramParts = Str::split($p, $separator);
-                $paramKey   = $paramParts[0];
-                $paramValue = $paramParts[1] ?? null;
+				$parts = Str::split($p, $separator);
 
-                $params[$paramKey] = $paramValue;
-                unset($path[$index]);
-            }
+				if ($key = $parts[0] ?? null) {
+					$key = rawurldecode($key);
 
-            return [
-                'path'   => $path,
-                'params' => $params,
-                'slash'  => $slash
-            ];
-        }
+					if ($value = $parts[1] ?? null) {
+						$value = rawurldecode($value);
+					}
 
-        return [
-            'path'   => null,
-            'params' => null,
-            'slash'  => false
-        ];
-    }
+					$params[$key] = $value;
+				}
 
-    /**
-     * Returns the param separator according
-     * to the operating system.
-     *
-     * Unix = ':'
-     * Windows = ';'
-     *
-     * @return string
-     */
-    public static function separator(): string
-    {
-        if (static::$separator !== null) {
-            return static::$separator;
-        }
+				unset($path[$index]);
+			}
 
-        if (DIRECTORY_SEPARATOR === '/') {
-            return static::$separator = ':';
-        } else {
-            return static::$separator = ';';
-        }
-    }
+			return [
+				'path'   => $path,
+				'params' => $params,
+				'slash'  => $slash
+			];
+		}
 
-    /**
-     * Converts the params object to a params string
-     * which can then be used in the URL builder again
-     *
-     * @param bool $leadingSlash
-     * @param bool $trailingSlash
-     * @return string|null
-     *
-     * @todo The argument $leadingSlash is incompatible with
-     *       Query::toString($questionMark = false); the Query class
-     *       should be extracted into a common parent class for both
-     *       Query and Params
-     * @psalm-suppress ParamNameMismatch
-     */
-    public function toString($leadingSlash = false, $trailingSlash = false): string
-    {
-        if ($this->isEmpty() === true) {
-            return '';
-        }
+		return [
+			'path'   => null,
+			'params' => null,
+			'slash'  => false
+		];
+	}
 
-        $params    = [];
-        $separator = static::separator();
+	public function isEmpty(): bool
+	{
+		return (array)$this === [];
+	}
 
-        foreach ($this as $key => $value) {
-            if ($value !== null && $value !== '') {
-                $params[] = $key . $separator . $value;
-            }
-        }
+	public function isNotEmpty(): bool
+	{
+		return $this->isEmpty() === false;
+	}
 
-        if (empty($params) === true) {
-            return '';
-        }
+	/**
+	 * Merges the current params with the given params
+	 * @since 5.1.0
+	 *
+	 * @return $this
+	 */
+	public function merge(array|string|null $params): static
+	{
+		$params = new static($params);
 
-        $params = implode('/', $params);
+		foreach ($params as $key => $value) {
+			$this->$key = $value;
+		}
 
-        $leadingSlash  = $leadingSlash  === true ? '/' : null;
-        $trailingSlash = $trailingSlash === true ? '/' : null;
+		return $this;
+	}
 
-        return $leadingSlash . $params . $trailingSlash;
-    }
+	/**
+	 * Returns the param separator according
+	 * to the operating system.
+	 *
+	 * Unix = ':'
+	 * Windows = ';'
+	 */
+	public static function separator(): string
+	{
+		return static::$separator ??= DIRECTORY_SEPARATOR === '/' ? ':' : ';';
+	}
+
+	/**
+	 * Converts the params object to a params string
+	 * which can then be used in the URL builder again
+	 */
+	public function toString(
+		bool $leadingSlash = false,
+		bool $trailingSlash = false
+	): string {
+		if ($this->isEmpty() === true) {
+			return '';
+		}
+
+		$params    = [];
+		$separator = static::separator();
+
+		foreach ($this as $key => $value) {
+			if ($value !== null && $value !== '') {
+				$key      = rawurlencode($key);
+				$value    = rawurlencode($value);
+				$params[] = $key . $separator . $value;
+			}
+		}
+
+		if ($params === []) {
+			return '';
+		}
+
+		$params = implode('/', $params);
+
+		$leadingSlash  = $leadingSlash  === true ? '/' : null;
+		$trailingSlash = $trailingSlash === true ? '/' : null;
+
+		return $leadingSlash . $params . $trailingSlash;
+	}
+
+	public function __toString(): string
+	{
+		return $this->toString();
+	}
 }

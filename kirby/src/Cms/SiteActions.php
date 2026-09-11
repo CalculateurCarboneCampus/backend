@@ -3,6 +3,7 @@
 namespace Kirby\Cms;
 
 use Closure;
+use Kirby\Toolkit\BlockCollectionAccess;
 
 /**
  * SiteActions
@@ -10,92 +11,94 @@ use Closure;
  * @package   Kirby Cms
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
 trait SiteActions
 {
-    /**
-     * Commits a site action, by following these steps
-     *
-     * 1. checks the action rules
-     * 2. sends the before hook
-     * 3. commits the store action
-     * 4. sends the after hook
-     * 5. returns the result
-     *
-     * @param string $action
-     * @param mixed ...$arguments
-     * @param Closure $callback
-     * @return mixed
-     */
-    protected function commit(string $action, array $arguments, Closure $callback)
-    {
-        $old            = $this->hardcopy();
-        $kirby          = $this->kirby();
-        $argumentValues = array_values($arguments);
+	/**
+	 * Commits a site action, by following these steps
+	 *
+	 * 1. applies the `before` hook
+	 * 2. checks the action rules
+	 * 3. commits the store action
+	 * 4. applies the `after` hook
+	 * 5. returns the result
+	 */
+	protected function commit(
+		string $action,
+		array $arguments,
+		Closure $callback
+	): mixed {
+		$commit = new ModelCommit(
+			model: $this,
+			action: $action
+		);
 
-        $this->rules()->$action(...$argumentValues);
-        $kirby->trigger('site.' . $action . ':before', $arguments);
+		return $commit->call($arguments, $callback);
+	}
 
-        $result = $callback(...$argumentValues);
+	/**
+	 * Change the site title
+	 */
+	#[BlockCollectionAccess]
+	public function changeTitle(
+		string $title,
+		string|null $languageCode = null
+	): static {
+		$language = Language::ensure($languageCode ?? 'current');
 
-        $kirby->trigger('site.' . $action . ':after', ['newSite' => $result, 'oldSite' => $old]);
+		$arguments = [
+			'site'         => $this,
+			'title'        => trim($title),
+			'languageCode' => $languageCode,
+			'language'     => $language
+		];
 
-        $kirby->cache('pages')->flush();
-        return $result;
-    }
+		return $this->commit('changeTitle', $arguments, function ($site, $title, $languageCode, $language) {
 
-    /**
-     * Change the site title
-     *
-     * @param string $title
-     * @param string|null $languageCode
-     * @return static
-     */
-    public function changeTitle(string $title, string $languageCode = null)
-    {
-        $site     = $this;
-        $title     = trim($title);
-        $arguments = compact('site', 'title', 'languageCode');
+			// make sure to update the title in the changes version as well
+			// otherwise the new title would be lost as soon as the changes are saved
+			if ($site->version('changes')->exists($language) === true) {
+				$site->version('changes')->update(['title' => $title], $language);
+			}
 
-        return $this->commit('changeTitle', $arguments, function ($site, $title, $languageCode) {
-            return $site->save(['title' => $title], $languageCode);
-        });
-    }
+			return $site->save(['title' => $title], $language->code());
+		});
+	}
 
-    /**
-     * Creates a main page
-     *
-     * @param array $props
-     * @return \Kirby\Cms\Page
-     */
-    public function createChild(array $props)
-    {
-        $props = array_merge($props, [
-            'url'    => null,
-            'num'    => null,
-            'parent' => null,
-            'site'   => $this,
-        ]);
+	/**
+	 * Creates a main page
+	 */
+	#[BlockCollectionAccess]
+	public function createChild(array $props): Page
+	{
+		return Page::create([
+			...$props,
+			'url'    => null,
+			'num'    => null,
+			'parent' => null,
+			'site'   => $this,
+		]);
+	}
 
-        return Page::create($props);
-    }
+	/**
+	 * Clean internal caches
+	 *
+	 * @return $this
+	 */
+	#[BlockCollectionAccess]
+	public function purge(): static
+	{
+		parent::purge();
 
-    /**
-     * Clean internal caches
-     *
-     * @return $this
-     */
-    public function purge()
-    {
-        $this->blueprint    = null;
-        $this->children     = null;
-        $this->content      = null;
-        $this->files        = null;
-        $this->inventory    = null;
-        $this->translations = null;
+		$this->blueprint         = null;
+		$this->children          = null;
+		$this->childrenAndDrafts = null;
+		$this->drafts            = null;
+		$this->files             = null;
+		$this->inventory         = null;
 
-        return $this;
-    }
+		return $this;
+	}
 }

@@ -2,6 +2,11 @@
 
 namespace Kirby\Panel;
 
+use Kirby\Cms\App;
+use Kirby\Exception\Exception;
+use Kirby\Http\Response;
+use Throwable;
+
 /**
  * The Json abstract response class provides
  * common framework for Fiber requests
@@ -12,66 +17,74 @@ namespace Kirby\Panel;
  * @package   Kirby Panel
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
 abstract class Json
 {
-    protected static $key = '$response';
+	protected static string $key = '$response';
 
-    /**
-     * Renders the error response with the provided message
-     *
-     * @param string $message
-     * @param int $code
-     * @return array
-     */
-    public static function error(string $message, int $code = 404)
-    {
-        return [
-            'code'  => $code,
-            'error' => $message
-        ];
-    }
+	/**
+	 * Renders the error response with the provided message
+	 */
+	public static function error(string $message, int $code = 404, array $details = []): array
+	{
+		$response = [
+			'code'  => $code,
+			'error' => $message,
+		];
 
-    /**
-     * Prepares the JSON response for the Panel
-     *
-     * @param mixed $data
-     * @param array $options
-     * @return mixed
-     */
-    public static function response($data, array $options = [])
-    {
-        // handle redirects
-        if (is_a($data, 'Kirby\Panel\Redirect') === true) {
-            $data = [
-                'redirect' => $data->location(),
-                'code'     => $data->code()
-            ];
+		if ($details !== []) {
+			$response['details'] = $details;
+		}
 
-        // handle Kirby exceptions
-        } elseif (is_a($data, 'Kirby\Exception\Exception') === true) {
-            $data = static::error($data->getMessage(), $data->getHttpCode());
+		return $response;
+	}
 
-        // handle exceptions
-        } elseif (is_a($data, 'Throwable') === true) {
-            $data = static::error($data->getMessage(), 500);
+	/**
+	 * Prepares the JSON response for the Panel
+	 */
+	public static function response($data, array $options = []): Response
+	{
+		$data = static::responseData($data);
 
-        // only expect arrays from here on
-        } elseif (is_array($data) === false) {
-            $data = static::error('Invalid response', 500);
-        }
+		// always inject the response code
+		$data['code']   ??= 200;
+		$data['path']     = $options['path'] ?? null;
+		$data['query']    = App::instance()->request()->query()->toArray();
+		$data['referrer'] = Panel::referrer();
 
-        if (empty($data) === true) {
-            $data = static::error('The response is empty', 404);
-        }
+		return Panel::json([static::$key => $data], $data['code']);
+	}
 
-        // always inject the response code
-        $data['code']   ??= 200;
-        $data['path']     = $options['path'] ?? null;
-        $data['referrer'] = Panel::referrer();
+	public static function responseData(mixed $data): array
+	{
+		// handle redirects
+		if ($data instanceof Redirect) {
+			return [
+				'redirect' => $data->location(),
+			];
+		}
 
-        return Panel::json([static::$key => $data], $data['code']);
-    }
+		// handle Kirby exceptions
+		if ($data instanceof Exception) {
+			return static::error($data->getMessage(), $data->getHttpCode(), $data->getDetails());
+		}
+
+		// handle exceptions
+		if ($data instanceof Throwable) {
+			return static::error($data->getMessage(), 500);
+		}
+
+		// only expect arrays from here on
+		if (is_array($data) === false) {
+			return static::error('Invalid response', 500);
+		}
+
+		if ($data === []) {
+			return static::error('The response is empty', 404);
+		}
+
+		return $data;
+	}
 }

@@ -1,307 +1,288 @@
 <?php
 
 use Kirby\Cms\Blueprint;
+use Kirby\Cms\Page;
+use Kirby\Cms\Pages;
+use Kirby\Cms\Site;
 use Kirby\Exception\InvalidArgumentException;
+use Kirby\Panel\Collector\PagesCollector;
+use Kirby\Panel\Ui\Item\PageItem;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\I18n;
 
 return [
-    'mixins' => [
-        'empty',
-        'headline',
-        'help',
-        'layout',
-        'min',
-        'max',
-        'pagination',
-        'parent'
-    ],
-    'props' => [
-        /**
-         * Optional array of templates that should only be allowed to add
-         * or `false` to completely disable page creation
-         */
-        'create' => function ($create = null) {
-            return $create;
-        },
-        /**
-         * Enables/disables reverse sorting
-         */
-        'flip' => function (bool $flip = false) {
-            return $flip;
-        },
-        /**
-         * Image options to control the source and look of page previews
-         */
-        'image' => function ($image = null) {
-            return $image ?? [];
-        },
-        /**
-         * Optional info text setup. Info text is shown on the right (lists) or below (cards) the page title.
-         */
-        'info' => function ($info = null) {
-            return I18n::translate($info, $info);
-        },
-        /**
-         * The size option controls the size of cards. By default cards are auto-sized and the cards grid will always fill the full width. With a size you can disable auto-sizing. Available sizes: `tiny`, `small`, `medium`, `large`, `huge`
-         */
-        'size' => function (string $size = 'auto') {
-            return $size;
-        },
-        /**
-         * Enables/disables manual sorting
-         */
-        'sortable' => function (bool $sortable = true) {
-            return $sortable;
-        },
-        /**
-         * Overwrites manual sorting and sorts by the given field and sorting direction (i.e. `date desc`)
-         */
-        'sortBy' => function (string $sortBy = null) {
-            return $sortBy;
-        },
-        /**
-         * Filters pages by their status. Available status settings: `draft`, `unlisted`, `listed`, `published`, `all`.
-         */
-        'status' => function (string $status = '') {
-            if ($status === 'drafts') {
-                $status = 'draft';
-            }
+	'mixins' => [
+		'batch',
+		'details',
+		'empty',
+		'headline',
+		'help',
+		'layout',
+		'min',
+		'max',
+		'pagination',
+		'parent',
+		'search',
+		'sort'
+	],
+	'props' => [
+		/**
+		 * Optional array of templates that should only be allowed to add
+		 * or `false` to completely disable page creation
+		 */
+		'create' => function ($create = null) {
+			return $create;
+		},
+		/**
+		 * Filters pages by a query. Sorting will be disabled
+		 */
+		'query' => function (string|null $query = null) {
+			return $query;
+		},
+		/**
+		 * Filters pages by their status. Available status settings: `draft`, `unlisted`, `listed`, `published`, `all`.
+		 */
+		'status' => function (string $status = '') {
+			if ($status === 'drafts') {
+				$status = 'draft';
+			}
 
-            if (in_array($status, ['all', 'draft', 'published', 'listed', 'unlisted']) === false) {
-                $status = 'all';
-            }
+			if (in_array($status, ['all', 'draft', 'published', 'listed', 'unlisted'], true) === false) {
+				$status = 'all';
+			}
 
-            return $status;
-        },
-        /**
-         * Filters the list by templates and sets template options when adding new pages to the section.
-         */
-        'templates' => function ($templates = null) {
-            return A::wrap($templates ?? $this->template);
-        },
-        /**
-         * Setup for the main text in the list or cards. By default this will display the page title.
-         */
-        'text' => function ($text = '{{ page.title }}') {
-            return I18n::translate($text, $text);
-        }
-    ],
-    'computed' => [
-        'parent' => function () {
-            $parent = $this->parentModel();
+			return $status;
+		},
+		/**
+		 * Filters the list by single template.
+		 */
+		'template' => function (string|array|null $template = null) {
+			return $template;
+		},
+		/**
+		 * Filters the list by templates and sets template options when adding new pages to the section.
+		 */
+		'templates' => function ($templates = null) {
+			return A::wrap($templates ?? $this->template);
+		},
+		/**
+		 * Excludes the selected templates.
+		 */
+		'templatesIgnore' => function ($templates = null) {
+			return A::wrap($templates);
+		}
+	],
+	'computed' => [
+		'parent' => function () {
+			$parent = $this->parentModel();
 
-            if (is_a($parent, 'Kirby\Cms\Site') === false && is_a($parent, 'Kirby\Cms\Page') === false) {
-                throw new InvalidArgumentException('The parent is invalid. You must choose the site or a page as parent.');
-            }
+			if (
+				$parent instanceof Site === false &&
+				$parent instanceof Page === false
+			) {
+				throw new InvalidArgumentException(
+					message: 'The parent is invalid. You must choose the site or a page as parent.'
+				);
+			}
 
-            return $parent;
-        },
-        'pages' => function () {
-            switch ($this->status) {
-                case 'draft':
-                    $pages = $this->parent->drafts();
-                    break;
-                case 'listed':
-                    $pages = $this->parent->children()->listed();
-                    break;
-                case 'published':
-                    $pages = $this->parent->children();
-                    break;
-                case 'unlisted':
-                    $pages = $this->parent->children()->unlisted();
-                    break;
-                default:
-                    $pages = $this->parent->childrenAndDrafts();
-            }
+			return $parent;
+		},
+		'collector' => function () {
+			return $this->collector ??= new PagesCollector(
+				limit: $this->limit(),
+				page: $this->page() ?? 1,
+				parent: $this->parent(),
+				query: $this->query(),
+				status: $this->status(),
+				templates: $this->templates(),
+				templatesIgnore: $this->templatesIgnore(),
+				search: $this->searchterm(),
+				sortBy: $this->sortBy(),
+				flip: $this->flip()
+			);
+		},
+		'models' => function () {
+			return $this->collector()->models();
+		},
+		'modelsPaginated' => function () {
+			return $this->collector()->models(paginated: true);
+		},
+		'pages' => function () {
+			return $this->models();
+		},
+		'total' => function () {
+			return $this->models()->count();
+		},
+		'data' => function () {
+			$data = [];
 
-            // loop for the best performance
-            foreach ($pages->data as $id => $page) {
+			foreach ($this->modelsPaginated() as $page) {
+				$item = (new PageItem(
+					page: $page,
+					image: $this->image,
+					layout: $this->layout,
+					info: $this->info,
+					text: $this->text,
+				))->props();
 
-                // remove all protected pages
-                if ($page->isReadable() === false) {
-                    unset($pages->data[$id]);
-                    continue;
-                }
+				if ($this->layout === 'table') {
+					$item = $this->columnsValues($item, $page);
+				}
 
-                // filter by all set templates
-                if ($this->templates && in_array($page->intendedTemplate()->name(), $this->templates) === false) {
-                    unset($pages->data[$id]);
-                    continue;
-                }
-            }
+				$data[] = $item;
+			}
 
-            // sort
-            if ($this->sortBy) {
-                $pages = $pages->sort(...$pages::sortArgs($this->sortBy));
-            }
+			return $data;
+		},
+		'errors' => function () {
+			$errors = [];
 
-            // flip
-            if ($this->flip === true) {
-                $pages = $pages->flip();
-            }
+			if ($this->validateMax() === false) {
+				$errors['max'] = I18n::template('error.section.pages.max.' . I18n::form($this->max), [
+					'max'     => $this->max,
+					'section' => $this->headline
+				]);
+			}
 
-            // pagination
-            $pages = $pages->paginate([
-                'page'   => $this->page,
-                'limit'  => $this->limit,
-                'method' => 'none' // the page is manually provided
-            ]);
+			if ($this->validateMin() === false) {
+				$errors['min'] = I18n::template('error.section.pages.min.' . I18n::form($this->min), [
+					'min'     => $this->min,
+					'section' => $this->headline
+				]);
+			}
 
-            return $pages;
-        },
-        'total' => function () {
-            return $this->pages->pagination()->total();
-        },
-        'data' => function () {
-            $data = [];
+			if (empty($errors) === true) {
+				return [];
+			}
 
-            foreach ($this->pages as $item) {
-                $panel       = $item->panel();
-                $permissions = $item->permissions();
+			return [
+				$this->name => [
+					'label'   => $this->headline,
+					'message' => $errors,
+				]
+			];
+		},
+		'add' => function () {
+			if ($this->create === false) {
+				return false;
+			}
 
-                $data[] = [
-                    'dragText'    => $panel->dragText(),
-                    'id'          => $item->id(),
-                    'image'       => $panel->image($this->image, $this->layout),
-                    'info'        => $item->toSafeString($this->info ?? false),
-                    'link'        => $panel->url(true),
-                    'parent'      => $item->parentId(),
-                    'permissions' => [
-                        'sort'         => $permissions->can('sort'),
-                        'changeSlug'   => $permissions->can('changeSlug'),
-                        'changeStatus' => $permissions->can('changeStatus'),
-                        'changeTitle'  => $permissions->can('changeTitle'),
-                    ],
-                    'status'      => $item->status(),
-                    'template'    => $item->intendedTemplate()->name(),
-                    'text'        => $item->toSafeString($this->text),
-                ];
-            }
+			if ($this->isFull() === true) {
+				return false;
+			}
 
-            return $data;
-        },
-        'errors' => function () {
-            $errors = [];
+			// form here on, we need to check with which status
+			// the pages are created and if the section can show
+			// these newly created pages
 
-            if ($this->validateMax() === false) {
-                $errors['max'] = I18n::template('error.section.pages.max.' . I18n::form($this->max), [
-                    'max'     => $this->max,
-                    'section' => $this->headline
-                ]);
-            }
+			// if the section shows pages no matter what status they have,
+			// we can always show the add button
+			if ($this->status === 'all') {
+				return true;
+			}
 
-            if ($this->validateMin() === false) {
-                $errors['min'] = I18n::template('error.section.pages.min.' . I18n::form($this->min), [
-                    'min'     => $this->min,
-                    'section' => $this->headline
-                ]);
-            }
+			// collect all statuses of the blueprints
+			// that are allowed to be created
+			$statuses = [];
 
-            if (empty($errors) === true) {
-                return [];
-            }
+			foreach ($this->blueprintNames() as $blueprint) {
+				try {
+					$props      = Blueprint::load('pages/' . $blueprint);
+					$statuses[] = $props['create']['status'] ?? 'draft';
+				} catch (Throwable) {
+					$statuses[] = 'draft'; // @codeCoverageIgnore
+				}
+			}
 
-            return [
-                $this->name => [
-                    'label'   => $this->headline,
-                    'message' => $errors,
-                ]
-            ];
-        },
-        'add' => function () {
-            if ($this->create === false) {
-                return false;
-            }
+			$statuses = array_unique($statuses);
 
-            if (in_array($this->status, ['draft', 'all']) === false) {
-                return false;
-            }
+			// if there are multiple statuses or if the section is showing
+			// a different status than new pages would be created with,
+			// we cannot show the add button
+			if (count($statuses) > 1 || $this->status !== $statuses[0]) {
+				return false;
+			}
 
-            if ($this->isFull() === true) {
-                return false;
-            }
+			return true;
+		},
+		'pagination' => function () {
+			return $this->pagination();
+		}
+	],
+	'methods' => [
+		'blueprints' => function () {
+			$blueprints = [];
 
-            return true;
-        },
-        'link' => function () {
-            $modelLink  = $this->model->panel()->url(true);
-            $parentLink = $this->parent->panel()->url(true);
+			// convert every template to a usable option array
+			// for the template select box
+			foreach ($this->blueprintNames() as $blueprint) {
+				try {
+					$props = Blueprint::load('pages/' . $blueprint);
 
-            if ($modelLink !== $parentLink) {
-                return $parentLink;
-            }
-        },
-        'pagination' => function () {
-            return $this->pagination();
-        },
-        'sortable' => function () {
-            if (in_array($this->status, ['listed', 'published', 'all']) === false) {
-                return false;
-            }
+					$blueprints[] = [
+						'name'  => basename($props['name']),
+						'title' => $props['title'],
+					];
+				} catch (Throwable) {
+					$blueprints[] = [
+						'name'  => basename($blueprint),
+						'title' => ucfirst($blueprint),
+					];
+				}
+			}
 
-            if ($this->sortable === false) {
-                return false;
-            }
+			return $blueprints;
+		},
+		'blueprintNames' => function () {
+			$blueprints  = empty($this->create) === false ? A::wrap($this->create) : $this->templates;
 
-            if ($this->sortBy !== null) {
-                return false;
-            }
+			if (empty($blueprints) === true) {
+				$blueprints = $this->kirby()->blueprints();
+			}
 
-            if ($this->flip === true) {
-                return false;
-            }
+			// excludes ignored templates
+			if ($templatesIgnore = $this->templatesIgnore) {
+				$blueprints = array_diff($blueprints, $templatesIgnore);
+			}
 
-            return true;
-        }
-    ],
-    'methods' => [
-        'blueprints' => function () {
-            $blueprints = [];
-            $templates  = empty($this->create) === false ? A::wrap($this->create) : $this->templates;
-
-            if (empty($templates) === true) {
-                $templates = $this->kirby()->blueprints();
-            }
-
-            // convert every template to a usable option array
-            // for the template select box
-            foreach ($templates as $template) {
-                try {
-                    $props = Blueprint::load('pages/' . $template);
-
-                    $blueprints[] = [
-                        'name'  => basename($props['name']),
-                        'title' => $props['title'],
-                    ];
-                } catch (Throwable $e) {
-                    $blueprints[] = [
-                        'name'  => basename($template),
-                        'title' => ucfirst($template),
-                    ];
-                }
-            }
-
-            return $blueprints;
-        }
-    ],
-    'toArray' => function () {
-        return [
-            'data'    => $this->data,
-            'errors'  => $this->errors,
-            'options' => [
-                'add'      => $this->add,
-                'empty'    => $this->empty,
-                'headline' => $this->headline,
-                'help'     => $this->help,
-                'layout'   => $this->layout,
-                'link'     => $this->link,
-                'max'      => $this->max,
-                'min'      => $this->min,
-                'size'     => $this->size,
-                'sortable' => $this->sortable
-            ],
-            'pagination' => $this->pagination,
-        ];
-    }
+			return $blueprints;
+		},
+	],
+	// @codeCoverageIgnoreStart
+	'api' => function () {
+		return [
+			[
+				'pattern' => 'delete',
+				'method'  => 'DELETE',
+				'action'  => function () {
+					return $this->section()->deleteSelected(
+						ids: $this->requestBody('ids'),
+					);
+				}
+			]
+		];
+	},
+	// @codeCoverageIgnoreEnd
+	'toArray' => function () {
+		return [
+			'data'    => $this->data,
+			'errors'  => $this->errors,
+			'options' => [
+				'add'      => $this->add,
+				'batch'    => $this->batch,
+				'columns'  => $this->columnsWithTypes(),
+				'empty'    => $this->empty,
+				'headline' => $this->headline,
+				'help'     => $this->help,
+				'layout'   => $this->layout,
+				'link'     => $this->link(),
+				'max'      => $this->max,
+				'min'      => $this->min,
+				'search'   => $this->search,
+				'size'     => $this->size,
+				'sortable' => $this->sortable
+			],
+			'pagination' => $this->pagination,
+		];
+	}
 ];

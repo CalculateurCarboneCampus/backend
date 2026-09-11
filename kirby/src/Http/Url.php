@@ -3,6 +3,7 @@
 namespace Kirby\Http;
 
 use Kirby\Toolkit\Str;
+use Whoops\Handler\PrettyPageHandler;
 
 /**
  * Static URL tools
@@ -10,281 +11,291 @@ use Kirby\Toolkit\Str;
  * @package   Kirby Http
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
 class Url
 {
-    /**
-     * The base Url to build absolute Urls from
-     *
-     * @var string
-     */
-    public static $home = '/';
+	/**
+	 * The base Url to build absolute Urls from
+	 */
+	public static string|null $home = '/';
 
-    /**
-     * The current Uri object
-     *
-     * @var Uri
-     */
-    public static $current = null;
+	/**
+	 * The current Uri object as string
+	 */
+	public static string|null $current = null;
 
-    /**
-     * Facade for all Uri object methods
-     *
-     * @param string $method
-     * @param array $arguments
-     * @return mixed
-     */
-    public static function __callStatic(string $method, $arguments)
-    {
-        return (new Uri($arguments[0] ?? static::current()))->$method(...array_slice($arguments, 1));
-    }
+	/**
+	 * Facade for all Uri object methods
+	 */
+	public static function __callStatic(string $method, array $arguments)
+	{
+		$uri = new Uri($arguments[0] ?? static::current());
+		return $uri->$method(...array_slice($arguments, 1));
+	}
 
-    /**
-     * Url Builder
-     * Actually just a factory for `new Uri($parts)`
-     *
-     * @param array $parts
-     * @param string|null $url
-     * @return string
-     */
-    public static function build(array $parts = [], string $url = null): string
-    {
-        return (string)(new Uri($url ?? static::current()))->clone($parts);
-    }
+	/**
+	 * Url Builder
+	 * Actually just a factory for `new Uri($parts)`
+	 */
+	public static function build(
+		array $parts = [],
+		string|null $url = null
+	): string {
+		$url ??= static::current();
+		$uri   = new Uri($url);
+		return $uri->clone($parts)->toString();
+	}
 
-    /**
-     * Returns the current url with all bells and whistles
-     *
-     * @return string
-     */
-    public static function current(): string
-    {
-        return static::$current = static::$current ?? static::toObject()->toString();
-    }
+	/**
+	 * Returns the current url with all bells and whistles
+	 */
+	public static function current(): string
+	{
+		return static::$current ??= static::toObject()->toString();
+	}
 
-    /**
-     * Returns the url for the current directory
-     *
-     * @return string
-     */
-    public static function currentDir(): string
-    {
-        return dirname(static::current());
-    }
+	/**
+	 * Returns the url for the current directory
+	 */
+	public static function currentDir(): string
+	{
+		return dirname(static::current());
+	}
 
-    /**
-     * Tries to fix a broken url without protocol
-     *
-     * @param string|null $url
-     * @return string
-     */
-    public static function fix(string $url = null): string
-    {
-        // make sure to not touch absolute urls
-        return (!preg_match('!^(https|http|ftp)\:\/\/!i', $url ?? '')) ? 'http://' . $url : $url;
-    }
+	/**
+	 * Use Whoops to create an editor URL to open
+	 * a file at the given line number
+	 * @since 5.3.0
+	 */
+	public static function editor(string|false $editor, string|null $file, int $line = 0): string|null
+	{
+		if ($editor === false || $file === null) {
+			return null;
+		}
 
-    /**
-     * Returns the home url if defined
-     *
-     * @return string
-     */
-    public static function home(): string
-    {
-        return static::$home;
-    }
+		$handler = new PrettyPageHandler();
+		$handler->setEditor($editor);
 
-    /**
-     * Returns the url to the executed script
-     *
-     * @param array $props
-     * @param bool $forwarded
-     * @return string
-     */
-    public static function index(array $props = [], bool $forwarded = false): string
-    {
-        return Uri::index($props, $forwarded)->toString();
-    }
+		return $handler->getEditorHref($file, $line);
+	}
 
-    /**
-     * Checks if an URL is absolute
-     *
-     * @param string|null $url
-     * @return bool
-     */
-    public static function isAbsolute(string $url = null): bool
-    {
-        // matches the following groups of URLs:
-        //  //example.com/uri
-        //  http://example.com/uri, https://example.com/uri, ftp://example.com/uri
-        //  mailto:example@example.com, geo:49.0158,8.3239?z=11
-        return $url !== null && preg_match('!^(//|[a-z0-9+-.]+://|mailto:|tel:|geo:)!i', $url) === 1;
-    }
+	/**
+	 * Tries to fix a broken url without protocol
+	 * @psalm-return ($url is null ? string|null : string)
+	 */
+	public static function fix(string|null $url = null): string|null
+	{
+		// make sure to not touch absolute urls
+		if (!preg_match('!^(https|http|ftp)\:\/\/!i', $url ?? '')) {
+			return 'http://' . $url;
+		}
 
-    /**
-     * Convert a relative path into an absolute URL
-     *
-     * @param string|null $path
-     * @param string|null $home
-     * @return string
-     */
-    public static function makeAbsolute(string $path = null, string $home = null): string
-    {
-        if ($path === '' || $path === '/' || $path === null) {
-            return $home ?? static::home();
-        }
+		return $url;
+	}
 
-        if (substr($path, 0, 1) === '#') {
-            return $path;
-        }
+	/**
+	 * Returns the home url if defined
+	 */
+	public static function home(): string
+	{
+		return static::$home;
+	}
 
-        if (static::isAbsolute($path)) {
-            return $path;
-        }
+	/**
+	 * Returns the url to the executed script
+	 */
+	public static function index(array $props = []): string
+	{
+		return Uri::index($props)->toString();
+	}
 
-        // build the full url
-        $path   = ltrim($path, '/');
-        $home ??= static::home();
+	/**
+	 * Checks if a URL starts with a dangerous URI scheme
+	 * (e.g. javascript:) that must never appear in rendered href
+	 * or src attributes.
+	 * @since 5.4.1
+	 */
+	public static function hasDangerousScheme(string|null $url = null): bool
+	{
+		if ($url === null) {
+			return false;
+		}
 
-        if (empty($path) === true) {
-            return $home;
-        }
+		// strip any weird characters to prevent bypass attempts,
+		// keeping only the characters we test for below
+		// (especially removes any whitespace that the browser would ignore
+		// when the resulting URL is evaluated)
+		$url = preg_replace('/[^a-z:]/i', '', $url);
 
-        return $home === '/' ? '/' . $path : $home . '/' . $path;
-    }
+		// try to find a match from the blocklist case-insensitively
+		return preg_match('!^(?:javascript|vbscript|livescript|mocha|jar|data):!i', $url) === 1;
+	}
 
-    /**
-     * Returns the path for the given url
-     *
-     * @param string|array|null $url
-     * @param bool $leadingSlash
-     * @param bool $trailingSlash
-     * @return string
-     */
-    public static function path($url = null, bool $leadingSlash = false, bool $trailingSlash = false): string
-    {
-        return Url::toObject($url)->path()->toString($leadingSlash, $trailingSlash);
-    }
+	/**
+	 * Checks if an URL is absolute
+	 */
+	public static function isAbsolute(string|null $url = null): bool
+	{
+		if ($url === null || static::hasDangerousScheme($url) === true) {
+			return false;
+		}
 
-    /**
-     * Returns the query for the given url
-     *
-     * @param string|array|null $url
-     * @return string
-     */
-    public static function query($url = null): string
-    {
-        return Url::toObject($url)->query()->toString();
-    }
+		// matches the following groups of URLs:
+		//  //example.com/uri
+		//  http://example.com/uri, https://example.com/uri, ftp://example.com/uri
+		//  mailto:example@example.com, geo:49.0158,8.3239?z=11
+		return preg_match('!^(//|[a-z0-9+-.]+://|mailto:|tel:|geo:)!i', $url) === 1;
+	}
 
-    /**
-     * Return the last url the user has been on if detectable
-     *
-     * @return string
-     */
-    public static function last(): string
-    {
-        return $_SERVER['HTTP_REFERER'] ?? '';
-    }
+	/**
+	 * Convert a relative path into an absolute URL
+	 */
+	public static function makeAbsolute(
+		string|null $path = null,
+		string|null $home = null
+	): string {
+		if ($path === '' || $path === '/' || $path === null) {
+			return $home ?? static::home();
+		}
 
-    /**
-     * Shortens the Url by removing all unnecessary parts
-     *
-     * @param string $url
-     * @param int $length
-     * @param bool $base
-     * @param string $rep
-     * @return string
-     */
-    public static function short($url = null, int $length = 0, bool $base = false, string $rep = '…'): string
-    {
-        $uri = static::toObject($url);
+		if (str_starts_with($path, '#') === true) {
+			return $path;
+		}
 
-        $uri->fragment = null;
-        $uri->query    = null;
-        $uri->password = null;
-        $uri->port     = null;
-        $uri->scheme   = null;
-        $uri->username = null;
+		if (static::isAbsolute($path) === true) {
+			return $path;
+		}
 
-        // remove the trailing slash from the path
-        $uri->slash = false;
+		// build the full url
+		$path   = ltrim($path, '/');
+		$home ??= static::home();
 
-        $url = $base ? $uri->base() : $uri->toString();
-        $url = str_replace('www.', '', $url);
+		if ($path === '') {
+			return $home;
+		}
 
-        return Str::short($url, $length, $rep);
-    }
+		if ($home === '/') {
+			return '/' . $path;
+		}
 
-    /**
-     * Removes the path from the Url
-     *
-     * @param string $url
-     * @return string
-     */
-    public static function stripPath($url = null): string
-    {
-        return static::toObject($url)->setPath(null)->toString();
-    }
+		return $home . '/' . $path;
+	}
 
-    /**
-     * Removes the query string from the Url
-     *
-     * @param string $url
-     * @return string
-     */
-    public static function stripQuery($url = null): string
-    {
-        return static::toObject($url)->setQuery(null)->toString();
-    }
+	/**
+	 * Returns the path for the given url
+	 */
+	public static function path(
+		string|array|null $url = null,
+		bool $leadingSlash = false,
+		bool $trailingSlash = false
+	): string {
+		return Url::toObject($url)
+			->path()
+			->toString($leadingSlash, $trailingSlash);
+	}
 
-    /**
-     * Removes the fragment (hash) from the Url
-     *
-     * @param string $url
-     * @return string
-     */
-    public static function stripFragment($url = null): string
-    {
-        return static::toObject($url)->setFragment(null)->toString();
-    }
+	/**
+	 * Returns the query for the given url
+	 */
+	public static function query(string|array|null $url = null): string
+	{
+		return Url::toObject($url)->query()->toString();
+	}
 
-    /**
-     * Smart resolver for internal and external urls
-     *
-     * @param string $path
-     * @param mixed $options
-     * @return string
-     */
-    public static function to(string $path = null, $options = null): string
-    {
-        // make sure $path is string
-        $path ??= '';
+	/**
+	 * Return the last url the user has been on if detectable
+	 */
+	public static function last(): string
+	{
+		return Environment::getGlobally('HTTP_REFERER', '');
+	}
 
-        // keep relative urls
-        if (substr($path, 0, 2) === './' || substr($path, 0, 3) === '../') {
-            return $path;
-        }
+	/**
+	 * Shortens the Url by removing all unnecessary parts
+	 */
+	public static function short(
+		string|null $url = null,
+		int $length = 0,
+		bool $base = false,
+		string $rep = '…'
+	): string {
+		$uri = static::toObject($url);
 
-        $url = static::makeAbsolute($path);
+		$uri->setFragment(null);
+		$uri->setQuery(null);
+		$uri->setPassword(null);
+		$uri->setPort(null);
+		$uri->setScheme(null);
+		$uri->setUsername(null);
 
-        if ($options === null) {
-            return $url;
-        }
+		// remove the trailing slash from the path
+		$uri->setSlash(false);
 
-        return (new Uri($url, $options))->toString();
-    }
+		$url = $base ? $uri->base() : $uri->toString();
+		$url = str_replace('www.', '', $url ?? '');
 
-    /**
-     * Converts the Url to a Uri object
-     *
-     * @param string $url
-     * @return \Kirby\Http\Uri
-     */
-    public static function toObject($url = null)
-    {
-        return $url === null ? Uri::current() : new Uri($url);
-    }
+		return Str::short($url, $length, $rep);
+	}
+
+	/**
+	 * Removes the path from the Url
+	 */
+	public static function stripPath(string|null $url = null): string
+	{
+		return static::toObject($url)->setPath(null)->toString();
+	}
+
+	/**
+	 * Removes the query string from the Url
+	 */
+	public static function stripQuery(string|null $url = null): string
+	{
+		return static::toObject($url)->setQuery(null)->toString();
+	}
+
+	/**
+	 * Removes the fragment (hash) from the Url
+	 */
+	public static function stripFragment(string|null $url = null): string
+	{
+		return static::toObject($url)->setFragment(null)->toString();
+	}
+
+	/**
+	 * Smart resolver for internal and external urls
+	 * @deprecated 5.3.0 Use `Kirby\Cms\Url::to()` instead
+	 */
+	public static function to(
+		string|null $path = null,
+		array|null $options = null
+	): string {
+		// make sure $path is string
+		$path ??= '';
+
+		// keep relative urls
+		if (
+			str_starts_with($path, './') === true ||
+			str_starts_with($path, '../') === true
+		) {
+			return $path;
+		}
+
+		$url = static::makeAbsolute($path);
+
+		if ($options === null) {
+			return $url;
+		}
+
+		return (new Uri($url, $options))->toString();
+	}
+
+	/**
+	 * Converts the Url to a Uri object
+	 */
+	public static function toObject(string|null $url = null): Uri
+	{
+		return $url === null ? Uri::current() : new Uri($url);
+	}
 }

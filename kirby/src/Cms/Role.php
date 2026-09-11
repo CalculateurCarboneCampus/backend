@@ -2,10 +2,12 @@
 
 namespace Kirby\Cms;
 
-use Exception;
 use Kirby\Data\Data;
 use Kirby\Filesystem\F;
+use Kirby\Toolkit\BlockCollectionAccess;
 use Kirby\Toolkit\I18n;
+use Kirby\Toolkit\Str;
+use Stringable;
 
 /**
  * Represents a User role with attached
@@ -14,219 +16,177 @@ use Kirby\Toolkit\I18n;
  * @package   Kirby Cms
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
-class Role extends Model
+class Role implements Stringable
 {
-    protected $description;
-    protected $name;
-    protected $permissions;
-    protected $title;
+	protected string|null $description;
+	protected string $name;
+	protected Permissions $permissions;
+	protected string|null $title;
 
-    public function __construct(array $props)
-    {
-        $this->setProperties($props);
-    }
+	public function __construct(array $props)
+	{
+		$this->name        = $props['name'];
+		$this->permissions = new Permissions($props['permissions'] ?? null);
+		$title             = $props['title'] ?? null;
+		$this->title       = I18n::translate($title) ?? $title;
+		$description       = $props['description'] ?? null;
+		$this->description = I18n::translate($description) ?? $description;
+	}
 
-    /**
-     * Improved `var_dump` output
-     *
-     * @return array
-     */
-    public function __debugInfo(): array
-    {
-        return $this->toArray();
-    }
+	/**
+	 * Improved `var_dump` output
+	 * @codeCoverageIgnore
+	 */
+	public function __debugInfo(): array
+	{
+		return $this->toArray();
+	}
 
-    /**
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return $this->name();
-    }
+	public function __toString(): string
+	{
+		return $this->name();
+	}
 
-    /**
-     * @param array $inject
-     * @return static
-     */
-    public static function admin(array $inject = [])
-    {
-        try {
-            return static::load('admin');
-        } catch (Exception $e) {
-            return static::factory(static::defaults()['admin'], $inject);
-        }
-    }
+	public static function defaultAdmin(array $inject = []): static
+	{
+		return static::factory(static::defaults()['admin'], $inject);
+	}
 
-    /**
-     * @return array
-     */
-    protected static function defaults(): array
-    {
-        return [
-            'admin' => [
-                'name'        => 'admin',
-                'description' => I18n::translate('role.admin.description'),
-                'title'       => I18n::translate('role.admin.title'),
-                'permissions' => true,
-            ],
-            'nobody' => [
-                'name'        => 'nobody',
-                'description' => I18n::translate('role.nobody.description'),
-                'title'       => I18n::translate('role.nobody.title'),
-                'permissions' => false,
-            ]
-        ];
-    }
+	public static function defaultNobody(array $inject = []): static
+	{
+		return static::factory(static::defaults()['nobody'], $inject);
+	}
 
-    /**
-     * @return mixed
-     */
-    public function description()
-    {
-        return $this->description;
-    }
+	protected static function defaults(): array
+	{
+		return [
+			'admin' => [
+				'name'        => 'admin',
+				'description' => I18n::translate('role.admin.description'),
+				'title'       => I18n::translate('role.admin.title'),
+				'permissions' => true,
+			],
+			'nobody' => [
+				'name'        => 'nobody',
+				'description' => I18n::translate('role.nobody.description'),
+				'title'       => I18n::translate('role.nobody.title'),
+				'permissions' => false,
+			]
+		];
+	}
 
-    /**
-     * @param array $props
-     * @param array $inject
-     * @return static
-     */
-    public static function factory(array $props, array $inject = [])
-    {
-        return new static($props + $inject);
-    }
+	public function description(): string|null
+	{
+		return $this->description;
+	}
 
-    /**
-     * @return string
-     */
-    public function id(): string
-    {
-        return $this->name();
-    }
+	public static function factory(array $props, array $inject = []): static
+	{
+		// ensure to properly extend the blueprint
+		$props = $props + $inject;
+		$props = Blueprint::extend($props);
 
-    /**
-     * @return bool
-     */
-    public function isAdmin(): bool
-    {
-        return $this->name() === 'admin';
-    }
+		return new static($props);
+	}
 
-    /**
-     * @return bool
-     */
-    public function isNobody(): bool
-    {
-        return $this->name() === 'nobody';
-    }
+	public function id(): string
+	{
+		return $this->name();
+	}
 
-    /**
-     * @param string $file
-     * @param array $inject
-     * @return static
-     */
-    public static function load(string $file, array $inject = [])
-    {
-        $data = Data::read($file);
-        $data['name'] = F::name($file);
+	/**
+	 * Compares the current object with the given role object
+	 * @since 5.4.0
+	 */
+	public function is(Role|null $role = null): bool
+	{
+		if ($role === null) {
+			return false;
+		}
 
-        return static::factory($data, $inject);
-    }
+		return $this->id() === $role->id();
+	}
 
-    /**
-     * @return string
-     */
-    public function name(): string
-    {
-        return $this->name;
-    }
+	/**
+	 * Checks if the role is accessible to the current user
+	 * @since 5.4.0
+	 */
+	public function isAccessible(): bool
+	{
+		$user = App::instance()->user();
 
-    /**
-     * @param array $inject
-     * @return static
-     */
-    public static function nobody(array $inject = [])
-    {
-        try {
-            return static::load('nobody');
-        } catch (Exception $e) {
-            return static::factory(static::defaults()['nobody'], $inject);
-        }
-    }
+		// no access without authenticated user
+		if ($user === null) {
+			return false;
+		}
 
-    /**
-     * @return \Kirby\Cms\Permissions
-     */
-    public function permissions()
-    {
-        return $this->permissions;
-    }
+		// check `user.access` for the current user with the same role
+		// (also ensures `access` option of the user's current role)
+		if ($user->role()->is($this) === true) {
+			return $user->isAccessible();
+		}
 
-    /**
-     * @param mixed $description
-     * @return $this
-     */
-    protected function setDescription($description = null)
-    {
-        $this->description = I18n::translate($description, $description);
-        return $this;
-    }
+		// check `users.access` for different roles
+		// (also ensures `access` option of the target role)
+		$tmpUser = new User([
+			'email' => 'test@getkirby.com',
+			'role'  => $this->id()
+		]);
 
-    /**
-     * @param string $name
-     * @return $this
-     */
-    protected function setName(string $name)
-    {
-        $this->name = $name;
-        return $this;
-    }
+		return $tmpUser->isAccessible();
+	}
 
-    /**
-     * @param mixed $permissions
-     * @return $this
-     */
-    protected function setPermissions($permissions = null)
-    {
-        $this->permissions = new Permissions($permissions);
-        return $this;
-    }
+	public function isAdmin(): bool
+	{
+		return $this->name() === 'admin';
+	}
 
-    /**
-     * @param mixed $title
-     * @return $this
-     */
-    protected function setTitle($title = null)
-    {
-        $this->title = I18n::translate($title, $title);
-        return $this;
-    }
+	public function isNobody(): bool
+	{
+		return $this->name() === 'nobody';
+	}
 
-    /**
-     * @return string
-     */
-    public function title(): string
-    {
-        return $this->title ??= ucfirst($this->name());
-    }
+	#[BlockCollectionAccess]
+	public static function load(string $file, array $inject = []): static
+	{
+		$data = [
+			...Data::read($file),
+			'name' => F::name($file)
+		];
 
-    /**
-     * Converts the most important role
-     * properties to an array
-     *
-     * @return array
-     */
-    public function toArray(): array
-    {
-        return [
-            'description' => $this->description(),
-            'id'          => $this->id(),
-            'name'        => $this->name(),
-            'permissions' => $this->permissions()->toArray(),
-            'title'       => $this->title(),
-        ];
-    }
+		return static::factory($data, $inject);
+	}
+
+	public function name(): string
+	{
+		return $this->name;
+	}
+
+	public function permissions(): Permissions
+	{
+		return $this->permissions;
+	}
+
+	public function title(): string
+	{
+		return $this->title ??= Str::label($this->name());
+	}
+
+	/**
+	 * Converts the most important role
+	 * properties to an array
+	 */
+	public function toArray(): array
+	{
+		return [
+			'description' => $this->description(),
+			'id'          => $this->id(),
+			'name'        => $this->name(),
+			'permissions' => $this->permissions()->toArray(),
+			'title'       => $this->title(),
+		];
+	}
 }

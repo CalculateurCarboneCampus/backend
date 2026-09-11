@@ -3,6 +3,8 @@
 namespace Kirby\Filesystem;
 
 use Kirby\Cms\FileModifications;
+use Kirby\Cms\HasMethods;
+use Kirby\Exception\BadMethodCallException;
 
 /**
  * Anything in your public path can be converted
@@ -13,105 +15,121 @@ use Kirby\Cms\FileModifications;
  * @package   Kirby Filesystem
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
 class Asset
 {
-    use IsFile;
-    use FileModifications;
+	use IsFile;
+	use FileModifications;
+	use HasMethods;
 
-    /**
-     * Relative file path
-     *
-     * @var string
-     */
-    protected $path;
+	/**
+	 * Relative file path
+	 */
+	protected string $path;
 
-    /**
-     * Creates a new Asset object for the given path.
-     *
-     * @param string $path
-     */
-    public function __construct(string $path)
-    {
-        $this->setProperties([
-            'path' => dirname($path),
-            'root' => $this->kirby()->root('index') . '/' . $path,
-            'url'  => $this->kirby()->url('index') . '/' . $path
-        ]);
-    }
 
-    /**
-     * Returns a unique id for the asset
-     *
-     * @return string
-     */
-    public function id(): string
-    {
-        return $this->root();
-    }
+	/**
+	 * Creates a new Asset object for the given path.
+	 */
+	public function __construct(string $path)
+	{
+		$this->root = $this->kirby()->root('index') . '/' . $path;
+		$this->url  = $this->kirby()->url('base') . '/' . $path;
 
-    /**
-     * Create a unique media hash
-     *
-     * @return string
-     */
-    public function mediaHash(): string
-    {
-        return crc32($this->filename()) . '-' . $this->modified();
-    }
+		// set relative file path
+		$this->path = dirname($path);
 
-    /**
-     * Returns the relative path starting at the media folder
-     *
-     * @return string
-     */
-    public function mediaPath(): string
-    {
-        return 'assets/' . $this->path() . '/' . $this->mediaHash() . '/' . $this->filename();
-    }
+		if ($this->path === '.') {
+			$this->path = '';
+		}
+	}
 
-    /**
-     * Returns the absolute path to the file in the public media folder
-     *
-     * @return string
-     */
-    public function mediaRoot(): string
-    {
-        return $this->kirby()->root('media') . '/' . $this->mediaPath();
-    }
+	/**
+	 * Magic caller for asset methods
+	 *
+	 * @throws \Kirby\Exception\BadMethodCallException
+	 */
+	public function __call(string $method, array $arguments = []): mixed
+	{
+		// public property access
+		if (isset($this->$method) === true) {
+			return $this->$method;
+		}
 
-    /**
-     * Returns the absolute Url to the file in the public media folder
-     *
-     * @return string
-     */
-    public function mediaUrl(): string
-    {
-        return $this->kirby()->url('media') . '/' . $this->mediaPath();
-    }
+		// asset method proxy
+		if (method_exists($this->asset(), $method)) {
+			return $this->asset()->$method(...$arguments);
+		}
 
-    /**
-     * Returns the path of the file from the web root,
-     * excluding the filename
-     *
-     * @return string
-     */
-    public function path(): string
-    {
-        return $this->path;
-    }
+		// asset methods
+		if ($this->hasMethod($method)) {
+			return $this->callMethod($method, $arguments);
+		}
 
-    /**
-     * Setter for the path
-     *
-     * @param string $path
-     * @return $this
-     */
-    protected function setPath(string $path)
-    {
-        $this->path = $path === '.' ? '' : $path;
-        return $this;
-    }
+		throw new BadMethodCallException(
+			message: 'The method: "' . $method . '" does not exist'
+		);
+	}
+
+	/**
+	 * Returns a unique id for the asset
+	 */
+	public function id(): string
+	{
+		return $this->root();
+	}
+
+	/**
+	 * Returns the absolute path to the media folder
+	 * for the file and its versions
+	 * @since 5.0.0
+	 */
+	public function mediaDir(): string
+	{
+		return dirname($this->mediaRoot());
+	}
+
+	/**
+	 * Create a unique media hash
+	 */
+	public function mediaHash(): string
+	{
+		return crc32($this->filename()) . '-' . $this->modified();
+	}
+
+	/**
+	 * Returns the relative path starting at the media folder
+	 */
+	public function mediaPath(string|null $filename = null): string
+	{
+		$filename ??= $this->filename();
+		return 'assets/' . $this->path() . '/' . $this->mediaHash() . '/' . $filename;
+	}
+
+	/**
+	 * Returns the absolute path to the file in the public media folder
+	 */
+	public function mediaRoot(string|null $filename = null): string
+	{
+		return $this->kirby()->root('media') . '/' . $this->mediaPath($filename);
+	}
+
+	/**
+	 * Returns the absolute Url to the file in the public media folder
+	 */
+	public function mediaUrl(string|null $filename = null): string
+	{
+		return $this->kirby()->url('media') . '/' . $this->mediaPath($filename);
+	}
+
+	/**
+	 * Returns the path of the file from the web root,
+	 * excluding the filename
+	 */
+	public function path(): string
+	{
+		return $this->path;
+	}
 }

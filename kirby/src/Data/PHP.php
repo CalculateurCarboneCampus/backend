@@ -12,83 +12,87 @@ use Kirby\Filesystem\F;
  * @package   Kirby Data
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
 class PHP extends Handler
 {
-    /**
-     * Converts an array to PHP file content
-     *
-     * @param mixed $data
-     * @param string $indent For internal use only
-     * @return string
-     */
-    public static function encode($data, string $indent = ''): string
-    {
-        switch (gettype($data)) {
-            case 'array':
-                $indexed = array_keys($data) === range(0, count($data) - 1);
-                $array   = [];
+	/**
+	 * Converts data to PHP file content
+	 *
+	 * @param string $indent For internal use only
+	 */
+	public static function encode($data, string $indent = ''): string
+	{
+		return match (gettype($data)) {
+			'array'   => static::encodeArray($data, $indent),
+			'boolean' => $data ? 'true' : 'false',
+			'integer',
+			'double'  => (string)$data,
+			default   => var_export($data, true)
+		};
+	}
 
-                foreach ($data as $key => $value) {
-                    $array[] = "$indent    " . ($indexed ? '' : static::encode($key) . ' => ') . static::encode($value, "$indent    ");
-                }
+	/**
+	 * Converts an array to PHP file content
+	 */
+	protected static function encodeArray(array $data, string $indent): string
+	{
+		$indexed = array_is_list($data);
+		$lines   = [];
 
-                return "[\n" . implode(",\n", $array) . "\n" . $indent . ']';
-            case 'boolean':
-                return $data ? 'true' : 'false';
-            case 'integer':
-            case 'double':
-                return $data;
-            default:
-                return var_export($data, true);
-        }
-    }
+		foreach ($data as $key => $value) {
+			$line = "$indent    ";
 
-    /**
-     * PHP strings shouldn't be decoded manually
-     *
-     * @param mixed $string
-     * @return array
-     */
-    public static function decode($string): array
-    {
-        throw new BadMethodCallException('The PHP::decode() method is not implemented');
-    }
+			if ($indexed === false) {
+				$line .= static::encode($key) . ' => ';
+			}
 
-    /**
-     * Reads data from a file
-     *
-     * @param string $file
-     * @return array
-     */
-    public static function read(string $file): array
-    {
-        if (is_file($file) !== true) {
-            throw new Exception('The file "' . $file . '" does not exist');
-        }
+			$line .= static::encode($value, "$indent    ");
 
-        return (array)F::load($file, []);
-    }
+			$lines[] =  $line;
+		}
 
-    /**
-     * Creates a PHP file with the given data
-     *
-     * @param string $file
-     * @param mixed $data
-     * @return bool
-     */
-    public static function write(string $file = null, $data = []): bool
-    {
-        $php = static::encode($data);
-        $php = "<?php\n\nreturn $php;";
+		return "[\n" . implode(",\n", $lines) . "\n" . $indent . ']';
+	}
 
-        if (F::write($file, $php) === true) {
-            F::invalidateOpcodeCache($file);
-            return true;
-        }
+	/**
+	 * PHP strings shouldn't be decoded manually
+	 */
+	public static function decode($string): array
+	{
+		throw new BadMethodCallException(
+			message: 'The PHP::decode() method is not implemented'
+		);
+	}
 
-        return false; // @codeCoverageIgnore
-    }
+	/**
+	 * Reads data from a file
+	 */
+	public static function read(string $file): array
+	{
+		if (is_file($file) !== true) {
+			throw new Exception(
+				message: 'The file "' . $file . '" does not exist'
+			);
+		}
+
+		return (array)F::load($file, [], allowOutput: false);
+	}
+
+	/**
+	 * Creates a PHP file with the given data
+	 */
+	public static function write(string $file, $data = []): bool
+	{
+		$php = static::encode($data);
+		$php = "<?php\n\nreturn $php;";
+
+		if (F::write($file, $php) === true) {
+			F::invalidateOpcodeCache($file);
+			return true;
+		}
+
+		return false; // @codeCoverageIgnore
+	}
 }

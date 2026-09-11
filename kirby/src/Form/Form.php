@@ -2,12 +2,11 @@
 
 namespace Kirby\Form;
 
-use Kirby\Cms\App;
-use Kirby\Cms\Model;
+use Kirby\Cms\File;
+use Kirby\Cms\Language;
+use Kirby\Cms\ModelWithContent;
 use Kirby\Data\Data;
-use Kirby\Exception\NotFoundException;
-use Kirby\Toolkit\Str;
-use Throwable;
+use Kirby\Toolkit\A;
 
 /**
  * The main form class, that is being
@@ -18,378 +17,384 @@ use Throwable;
  * @package   Kirby Form
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
 class Form
 {
-    /**
-     * An array of all found errors
-     *
-     * @var array|null
-     */
-    protected $errors;
+	/**
+	 * Fields in the form
+	 */
+	protected Fields $fields;
 
-    /**
-     * Fields in the form
-     *
-     * @var \Kirby\Form\Fields|null
-     */
-    protected $fields;
+	/**
+	 * Form constructor
+	 */
+	public function __construct(
+		array $props = [],
+		array $fields = [],
+		ModelWithContent|null $model = null,
+		Language|string|null $language = null
+	) {
+		if ($props !== []) {
+			$this->legacyConstruct(...$props);
+			return;
+		}
 
-    /**
-     * All values of form
-     *
-     * @var array
-     */
-    protected $values = [];
+		$this->fields = new Fields(
+			fields: $fields,
+			model: $model,
+			language: $language
+		);
+	}
 
-    /**
-     * Form constructor
-     *
-     * @param array $props
-     */
-    public function __construct(array $props)
-    {
-        $fields = $props['fields'] ?? [];
-        $values = $props['values'] ?? [];
-        $input  = $props['input']  ?? [];
-        $strict = $props['strict'] ?? false;
-        $inject = $props;
+	/**
+	 * Returns the data required to write to the content file
+	 * Doesn't include default and null values
+	 *
+	 * @deprecated 5.0.0 Use `::toStoredValues()` instead
+	 */
+	public function content(): array
+	{
+		return $this->data(false, false);
+	}
 
-        // prepare field properties for multilang setups
-        $fields = static::prepareFieldsForLanguage(
-            $fields,
-            $props['language'] ?? null
-        );
+	/**
+	 * Returns data for all fields in the form
+	 *
+	 * @deprecated 5.0.0 Use `::toStoredValues()` instead
+	 */
+	public function data($defaults = false, bool $includeNulls = true): array
+	{
+		$data     = [];
+		$language = $this->fields->language();
 
-        // lowercase all value names
-        $values = array_change_key_case($values);
-        $input  = array_change_key_case($input);
+		foreach ($this->fields as $field) {
+			if ($field->isStorable($language) === false) {
+				if ($includeNulls === true) {
+					$data[$field->name()] = null;
+				}
 
-        unset($inject['fields'], $inject['values'], $inject['input']);
+				continue;
+			}
 
-        $this->fields = new Fields();
-        $this->values = [];
+			if ($defaults === true && $field->isEmpty() === true) {
+				$field->fill($field->default());
+			}
 
-        foreach ($fields as $name => $props) {
+			$data[$field->name()] = $field->toStoredValue();
+		}
 
-            // inject stuff from the form constructor (model, etc.)
-            $props = array_merge($inject, $props);
+		foreach ($this->fields->passthrough() as $key => $value) {
+			if (isset($data[$key]) === false) {
+				$data[$key] = $value;
+			}
+		}
 
-            // inject the name
-            $props['name'] = $name = strtolower($name);
+		return $data;
+	}
 
-            // check if the field is disabled
-            $disabled = $props['disabled'] ?? false;
+	/**
+	 * Returns an array with the default value of each field
+	 *
+	 * @since 5.0.0
+	 */
+	public function defaults(): array
+	{
+		return $this->fields->defaults();
+	}
 
-            // overwrite the field value if not set
-            if ($disabled === true) {
-                $props['value'] = $values[$name] ?? null;
-            } else {
-                $props['value'] = $input[$name] ?? $values[$name] ?? null;
-            }
+	/**
+	 * An array of all found errors
+	 */
+	public function errors(): array
+	{
+		return $this->fields->errors();
+	}
 
-            try {
-                $field = Field::factory($props['type'], $props, $this->fields);
-            } catch (Throwable $e) {
-                $field = static::exceptionField($e, $props);
-            }
+	/**
+	 * Get the field object by name
+	 * and handle nested fields correctly
+	 *
+	 * @throws \Kirby\Exception\NotFoundException
+	 */
+	public function field(string $name): Field|FieldClass
+	{
+		return $this->fields->field($name);
+	}
 
-            if ($field->save() !== false) {
-                $this->values[$name] = $field->value();
-            }
+	/**
+	 * Returns form fields
+	 */
+	public function fields(): Fields
+	{
+		return $this->fields;
+	}
 
-            $this->fields->append($name, $field);
-        }
+	/**
+	 * Sets the value for each field with a matching key in the input array
+	 *
+	 * @since 5.0.0
+	 */
+	public function fill(
+		array $input,
+		bool $passthrough = true
+	): static {
+		$this->fields->fill(
+			input:       $input,
+			passthrough: $passthrough
+		);
+		return $this;
+	}
 
-        if ($strict !== true) {
+	/**
+	 * Creates a new Form instance for the given model with the fields
+	 * from the blueprint and the values from the content
+	 */
+	public static function for(
+		ModelWithContent $model,
+		array $props = [],
+		Language|string|null $language = null,
+	): static {
+		if ($props !== []) {
+			return static::legacyFor(
+				$model,
+				...$props
+			);
+		}
 
-            // use all given values, no matter
-            // if there's a field or not.
-            $input = array_merge($values, $input);
+		$form = new static(
+			fields: $model->blueprint()->fields(),
+			model: $model,
+			language: $language
+		);
 
-            foreach ($input as $key => $value) {
-                if (isset($this->values[$key]) === false) {
-                    $this->values[$key] = $value;
-                }
-            }
-        }
-    }
+		// fill the form with the latest content of the model
+		$form->fill(input: $model->content($form->language())->toArray());
 
-    /**
-     * Returns the data required to write to the content file
-     * Doesn't include default and null values
-     *
-     * @return array
-     */
-    public function content(): array
-    {
-        return $this->data(false, false);
-    }
+		return $form;
+	}
 
-    /**
-     * Returns data for all fields in the form
-     *
-     * @param false $defaults
-     * @param bool $includeNulls
-     * @return array
-     */
-    public function data($defaults = false, bool $includeNulls = true): array
-    {
-        $data = $this->values;
+	/**
+	 * Checks if the form is invalid
+	 */
+	public function isInvalid(): bool
+	{
+		return $this->isValid() === false;
+	}
 
-        foreach ($this->fields as $field) {
-            if ($field->save() === false || $field->unset() === true) {
-                if ($includeNulls === true) {
-                    $data[$field->name()] = null;
-                } else {
-                    unset($data[$field->name()]);
-                }
-            } else {
-                $data[$field->name()] = $field->data($defaults);
-            }
-        }
+	/**
+	 * Checks if the form is valid
+	 */
+	public function isValid(): bool
+	{
+		return $this->fields->errors() === [];
+	}
 
-        return $data;
-    }
+	/**
+	 * Returns the language of the form
+	 *
+	 * @since 5.0.0
+	 */
+	public function language(): Language
+	{
+		return $this->fields->language();
+	}
 
-    /**
-     * An array of all found errors
-     *
-     * @return array
-     */
-    public function errors(): array
-    {
-        if ($this->errors !== null) {
-            return $this->errors;
-        }
+	/**
+	 * Legacy constructor to support the old props array
+	 *
+	 * @deprecated 5.0.0 Use the new constructor with named parameters instead
+	 */
+	protected function legacyConstruct(
+		array $fields = [],
+		ModelWithContent|null $model = null,
+		Language|string|null $language = null,
+		array $values = [],
+		array $input = [],
+		bool $strict = false
+	): void {
+		$this->__construct(
+			fields: $fields,
+			model: $model,
+			language: $language
+		);
 
-        $this->errors = [];
+		$this->fill(
+			input: $values,
+			passthrough: $strict === false
+		);
 
-        foreach ($this->fields as $field) {
-            if (empty($field->errors()) === false) {
-                $this->errors[$field->name()] = [
-                    'label'   => $field->label(),
-                    'message' => $field->errors()
-                ];
-            }
-        }
+		$this->submit(
+			input: $input,
+			passthrough: $strict === false
+		);
+	}
 
-        return $this->errors;
-    }
+	/**
+	 * Legacy for method to support the old props array
+	 *
+	 * @deprecated 5.0.0 Use `::for()` with named parameters instead
+	 */
+	protected static function legacyFor(
+		ModelWithContent $model,
+		Language|string|null $language = null,
+		bool $strict = false,
+		array|null $input = [],
+		array|null $values = [],
+		bool $ignoreDisabled = false
+	): static {
+		$form = static::for(
+			model: $model,
+			language: $language,
+		);
 
-    /**
-     * Shows the error with the field
-     *
-     * @param \Throwable $exception
-     * @param array $props
-     * @return \Kirby\Form\Field
-     */
-    public static function exceptionField(Throwable $exception, array $props = [])
-    {
-        $message = $exception->getMessage();
+		$form->fill(
+			input: $values ?? [],
+			passthrough: $strict === false
+		);
 
-        if (App::instance()->option('debug') === true) {
-            $message .= ' in file: ' . $exception->getFile() . ' line: ' . $exception->getLine();
-        }
+		$form->submit(
+			input: $input ?? [],
+			passthrough: $strict === false
+		);
 
-        $props = array_merge($props, [
-            'label' => 'Error in "' . $props['name'] . '" field.',
-            'theme' => 'negative',
-            'text'  => strip_tags($message),
-        ]);
+		return $form;
+	}
 
-        return Field::factory('info', $props);
-    }
+	/**
+	 * Adds values to the passthrough array
+	 * which will be added to the form data
+	 * if the field does not exist
+	 *
+	 * @since 5.0.0
+	 */
+	public function passthrough(
+		array|null $values = null
+	): static|array {
+		if ($values === null) {
+			return $this->fields->passthrough();
+		}
 
-    /**
-     * Get the field object by name
-     * and handle nested fields correctly
-     *
-     * @param string $name
-     * @throws \Kirby\Exception\NotFoundException
-     * @return \Kirby\Form\Field
-     */
-    public function field(string $name)
-    {
-        $form       = $this;
-        $fieldNames = Str::split($name, '+');
-        $index      = 0;
-        $count      = count($fieldNames);
-        $field      = null;
+		$this->fields->passthrough(
+			values: $values
+		);
 
-        foreach ($fieldNames as $fieldName) {
-            $index++;
+		return $this;
+	}
 
-            if ($field = $form->fields()->get($fieldName)) {
-                if ($count !== $index) {
-                    $form = $field->form();
-                }
-            } else {
-                throw new NotFoundException('The field "' . $fieldName . '" could not be found');
-            }
-        }
+	/**
+	 * Resets the value of each field
+	 *
+	 * @since 5.0.0
+	 */
+	public function reset(): static
+	{
+		$this->fields->reset();
+		return $this;
+	}
 
-        // it can get this error only if $name is an empty string as $name = ''
-        if ($field === null) {
-            throw new NotFoundException('No field could be loaded');
-        }
+	/**
+	 * Converts the data of fields to strings
+	 *
+	 * @deprecated 5.0.0 Use `::toStoredValues()` instead
+	 */
+	public function strings($defaults = false): array
+	{
+		return A::map(
+			$this->data($defaults),
+			fn ($value) => match (true) {
+				is_array($value) => Data::encode($value, 'yaml'),
+				default		     => $value
+			}
+		);
+	}
 
-        return $field;
-    }
+	/**
+	 * Sets the value for each field with a matching key in the input array
+	 * but only if the field is not disabled
+	 *
+	 * @since 5.0.0
+	 * @param bool $passthrough If true, values for undefined fields will be submitted
+	 * @param bool $force If true, values for fields that cannot be submitted (e.g. disabled or untranslatable fields) will be submitted
+	 */
+	public function submit(
+		array $input,
+		bool $passthrough = true,
+		bool $force = false
+	): static {
+		$this->fields->submit(
+			input: $input,
+			passthrough: $passthrough,
+			force: $force
+		);
+		return $this;
+	}
 
-    /**
-     * Returns form fields
-     *
-     * @return \Kirby\Form\Fields|null
-     */
-    public function fields()
-    {
-        return $this->fields;
-    }
+	/**
+	 * Converts the form to a plain array
+	 */
+	public function toArray(): array
+	{
+		$array = [
+			'errors'  => $this->fields->errors(),
+			'fields'  => $this->fields->toArray(),
+			'invalid' => $this->isInvalid()
+		];
 
-    /**
-     * @param \Kirby\Cms\Model $model
-     * @param array $props
-     * @return static
-     */
-    public static function for(Model $model, array $props = [])
-    {
-        // get the original model data
-        $original = $model->content($props['language'] ?? null)->toArray();
-        $values   = $props['values'] ?? [];
+		return $array;
+	}
 
-        // convert closures to values
-        foreach ($values as $key => $value) {
-            if (is_a($value, 'Closure') === true) {
-                $values[$key] = $value($original[$key] ?? null);
-            }
-        }
+	/**
+	 * Returns an array with the form value of each field
+	 * (e.g. used as data for Panel Vue components)
+	 *
+	 * @since 5.0.0
+	 */
+	public function toFormValues(): array
+	{
+		return $this->fields->toFormValues();
+	}
 
-        // set a few defaults
-        $props['values']   = array_merge($original, $values);
-        $props['fields'] ??= [];
-        $props['model']    = $model;
+	/**
+	 * Returns an array with the props of each field
+	 * for the frontend
+	 *
+	 * @since 5.0.0
+	 */
+	public function toProps(): array
+	{
+		return $this->fields->toProps();
+	}
 
-        // search for the blueprint
-        if (method_exists($model, 'blueprint') === true && $blueprint = $model->blueprint()) {
-            $props['fields'] = $blueprint->fields();
-        }
+	/**
+	 * Returns an array with the stored value of each field
+	 * (e.g. used for saving to content storage)
+	 *
+	 * @since 5.0.0
+	 */
+	public function toStoredValues(): array
+	{
+		return $this->fields->toStoredValues();
+	}
 
-        $ignoreDisabled = $props['ignoreDisabled'] ?? false;
+	/**
+	 * Validates the form and throws an exception if there are any errors
+	 *
+	 * @throws \Kirby\Exception\InvalidArgumentException
+	 */
+	public function validate(): void
+	{
+		$this->fields->validate();
+	}
 
-        // REFACTOR: this could be more elegant
-        if ($ignoreDisabled === true) {
-            $props['fields'] = array_map(function ($field) {
-                $field['disabled'] = false;
-                return $field;
-            }, $props['fields']);
-        }
-
-        return new static($props);
-    }
-
-    /**
-     * Checks if the form is invalid
-     *
-     * @return bool
-     */
-    public function isInvalid(): bool
-    {
-        return empty($this->errors()) === false;
-    }
-
-    /**
-     * Checks if the form is valid
-     *
-     * @return bool
-     */
-    public function isValid(): bool
-    {
-        return empty($this->errors()) === true;
-    }
-
-    /**
-     * Disables fields in secondary languages when
-     * they are configured to be untranslatable
-     *
-     * @param array $fields
-     * @param string|null $language
-     * @return array
-     */
-    protected static function prepareFieldsForLanguage(array $fields, ?string $language = null): array
-    {
-        $kirby = App::instance(null, true);
-
-        // only modify the fields if we have a valid Kirby multilang instance
-        if (!$kirby || $kirby->multilang() === false) {
-            return $fields;
-        }
-
-        if ($language === null) {
-            $language = $kirby->language()->code();
-        }
-
-        if ($language !== $kirby->defaultLanguage()->code()) {
-            foreach ($fields as $fieldName => $fieldProps) {
-                // switch untranslatable fields to readonly
-                if (($fieldProps['translate'] ?? true) === false) {
-                    $fields[$fieldName]['unset']    = true;
-                    $fields[$fieldName]['disabled'] = true;
-                }
-            }
-        }
-
-        return $fields;
-    }
-
-    /**
-     * Converts the data of fields to strings
-     *
-     * @param false $defaults
-     * @return array
-     */
-    public function strings($defaults = false): array
-    {
-        $strings = [];
-
-        foreach ($this->data($defaults) as $key => $value) {
-            if ($value === null) {
-                $strings[$key] = null;
-            } elseif (is_array($value) === true) {
-                $strings[$key] = Data::encode($value, 'yaml');
-            } else {
-                $strings[$key] = $value;
-            }
-        }
-
-        return $strings;
-    }
-
-    /**
-     * Converts the form to a plain array
-     *
-     * @return array
-     */
-    public function toArray(): array
-    {
-        $array = [
-            'errors'  => $this->errors(),
-            'fields'  => $this->fields->toArray(fn ($item) => $item->toArray()),
-            'invalid' => $this->isInvalid()
-        ];
-
-        return $array;
-    }
-
-    /**
-     * Returns form values
-     *
-     * @return array
-     */
-    public function values(): array
-    {
-        return $this->values;
-    }
+	/**
+	 * Returns form values
+	 *
+	 * @deprecated 5.0.0 Use `::toFormValues()` instead
+	 */
+	public function values(): array
+	{
+		return $this->fields->toFormValues();
+	}
 }

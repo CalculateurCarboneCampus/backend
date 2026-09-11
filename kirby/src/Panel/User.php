@@ -2,6 +2,15 @@
 
 namespace Kirby\Panel;
 
+use Kirby\Cms\File as CmsFile;
+use Kirby\Cms\ModelWithContent;
+use Kirby\Cms\Translation;
+use Kirby\Cms\Url;
+use Kirby\Filesystem\Asset;
+use Kirby\Panel\Ui\Buttons\ViewButtons;
+use Kirby\Panel\Ui\Item\UserItem;
+use Kirby\Toolkit\I18n;
+
 /**
  * Provides information about the user model for the Panel
  * @since 3.6.0
@@ -9,264 +18,284 @@ namespace Kirby\Panel;
  * @package   Kirby Panel
  * @author    Nico Hoffmann <nico@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
 class User extends Model
 {
-    /**
-     * Breadcrumb array
-     *
-     * @return array
-     */
-    public function breadcrumb(): array
-    {
-        return [
-            [
-                'label' => $this->model->username(),
-                'link'  => $this->url(true),
-            ]
-        ];
-    }
+	/**
+	 * @var \Kirby\Cms\User
+	 */
+	protected ModelWithContent $model;
 
-    /**
-     * Provides options for the user dropdown
-     *
-     * @param array $options
-     * @return array
-     */
-    public function dropdown(array $options = []): array
-    {
-        $account     = $this->model->isLoggedIn();
-        $i18nPrefix  = $account ? 'account' : 'user';
-        $permissions = $this->options(['preview']);
-        $url         = $this->url(true);
-        $result      = [];
+	/**
+	 * Breadcrumb array
+	 */
+	public function breadcrumb(): array
+	{
+		return [
+			[
+				'label' => $this->model->username(),
+				'link'  => $this->url(true),
+			]
+		];
+	}
 
-        $result[] = [
-            'dialog'   => $url . '/changeName',
-            'icon'     => 'title',
-            'text'     => t($i18nPrefix . '.changeName'),
-            'disabled' => $this->isDisabledDropdownOption('changeName', $options, $permissions)
-        ];
+	/**
+	 * Returns header buttons which should be displayed
+	 * on the user view
+	 */
+	public function buttons(): array
+	{
+		return ViewButtons::view($this)->defaults(
+			'theme',
+			'settings',
+			'languages'
+		)->render();
+	}
 
-        $result[] = '-';
+	/**
+	 * Provides options for the user dropdown
+	 */
+	public function dropdown(array $options = []): array
+	{
+		$account     = $this->model->isLoggedIn();
+		$i18nPrefix  = $account ? 'account' : 'user';
+		$permissions = $this->options(['preview']);
+		$url         = $this->url(true);
+		$result      = [];
 
-        $result[] = [
-            'dialog'   => $url . '/changeEmail',
-            'icon'     => 'email',
-            'text'     => t('user.changeEmail'),
-            'disabled' => $this->isDisabledDropdownOption('changeEmail', $options, $permissions)
-        ];
+		$result[] = [
+			'dialog'   => $url . '/changeName',
+			'icon'     => 'title',
+			'text'     => I18n::translate($i18nPrefix . '.changeName'),
+			'disabled' => $this->isDisabledDropdownOption('changeName', $options, $permissions)
+		];
 
-        $result[] = [
-            'dialog'   => $url . '/changeRole',
-            'icon'     => 'bolt',
-            'text'     => t('user.changeRole'),
-            'disabled' => $this->isDisabledDropdownOption('changeRole', $options, $permissions)
-        ];
+		$result[] = '-';
 
-        $result[] = [
-            'dialog'   => $url . '/changePassword',
-            'icon'     => 'key',
-            'text'     => t('user.changePassword'),
-            'disabled' => $this->isDisabledDropdownOption('changePassword', $options, $permissions)
-        ];
+		$result[] = [
+			'dialog'   => $url . '/changeEmail',
+			'icon'     => 'email',
+			'text'     => I18n::translate('user.changeEmail'),
+			'disabled' => $this->isDisabledDropdownOption('changeEmail', $options, $permissions)
+		];
 
-        $result[] = [
-            'dialog'   => $url . '/changeLanguage',
-            'icon'     => 'globe',
-            'text'     => t('user.changeLanguage'),
-            'disabled' => $this->isDisabledDropdownOption('changeLanguage', $options, $permissions)
-        ];
+		$result[] = [
+			'dialog'   => $url . '/changeRole',
+			'icon'     => 'bolt',
+			'text'     => I18n::translate('user.changeRole'),
+			'disabled' => $this->isDisabledDropdownOption('changeRole', $options, $permissions) || $this->model->roles()->count() < 2
+		];
 
-        $result[] = '-';
+		$result[] = [
+			'dialog'   => $url . '/changeLanguage',
+			'icon'     => 'translate',
+			'text'     => I18n::translate('user.changeLanguage'),
+			'disabled' => $this->isDisabledDropdownOption('changeLanguage', $options, $permissions)
+		];
 
-        $result[] = [
-            'dialog'   => $url . '/delete',
-            'icon'     => 'trash',
-            'text'     => t($i18nPrefix . '.delete'),
-            'disabled' => $this->isDisabledDropdownOption('delete', $options, $permissions)
-        ];
+		$result[] = '-';
 
-        return $result;
-    }
+		$result[] = [
+			'dialog'   => $url . '/changePassword',
+			'icon'     => 'key',
+			'text'     => I18n::translate('user.' . ($this->model->hasPassword() === true ? 'changePassword' : 'setPassword')),
+			'disabled' => $this->isDisabledDropdownOption('changePassword', $options, $permissions)
+		];
 
-    /**
-     * Returns the setup for a dropdown option
-     * which is used in the changes dropdown
-     * for example.
-     *
-     * @return array
-     */
-    public function dropdownOption(): array
-    {
-        return [
-            'icon' => 'user',
-            'text' => $this->model->username(),
-        ] + parent::dropdownOption();
-    }
+		if ($this->model->kirby()->system()->is2FAWithTOTP() === true) {
+			if ($account || $this->model->kirby()->user()->isAdmin()) {
+				if ($this->model->secret('totp') !== null) {
+					$result[] = [
+						'dialog'   => $url . '/totp/disable',
+						'icon'     => 'qr-code',
+						'text'     => I18n::translate('login.totp.disable.option'),
+					];
+				} elseif ($account) {
+					$result[] = [
+						'dialog'   => $url . '/totp/enable',
+						'icon'     => 'qr-code',
+						'text'     => I18n::translate('login.totp.enable.option')
+					];
+				}
+			}
+		}
 
-    /**
-     * @return string|null
-     */
-    public function home(): ?string
-    {
-        if ($home = ($this->model->blueprint()->home() ?? null)) {
-            $url = $this->model->toString($home);
-            return url($url);
-        }
+		$result[] = '-';
 
-        return Panel::url('site');
-    }
+		$result[] = [
+			'dialog'   => $url . '/delete',
+			'icon'     => 'trash',
+			'text'     => I18n::translate($i18nPrefix . '.delete'),
+			'disabled' => $this->isDisabledDropdownOption('delete', $options, $permissions)
+		];
 
-    /**
-     * Default settings for the user's Panel image
-     *
-     * @return array
-     */
-    protected function imageDefaults(): array
-    {
-        return array_merge(parent::imageDefaults(), [
-            'back'  => 'black',
-            'icon'  => 'user',
-            'ratio' => '1/1',
-        ]);
-    }
+		return $result;
+	}
 
-    /**
-     * Returns the image file object based on provided query
-     *
-     * @param string|null $query
-     * @return \Kirby\Cms\File|\Kirby\Filesystem\Asset|null
-     */
-    protected function imageSource(string $query = null)
-    {
-        if ($query === null) {
-            return $this->model->avatar();
-        }
+	/**
+	 * Returns the setup for a dropdown option
+	 * which is used in the changes dropdown
+	 * for example.
+	 *
+	 * @deprecated 5.1.4 Use the Kirby\Panel\Ui\Item\UserItem class instead
+	 */
+	public function dropdownOption(): array
+	{
+		return (new UserItem(user: $this->model))->props() + [
+			'icon' => 'user'
+		];
+	}
 
-        return parent::imageSource($query);
-    }
+	public function home(): string|null
+	{
+		if ($home = ($this->model->blueprint()->home() ?? null)) {
+			$url = $this->model->toString($home);
+			return Url::to($url);
+		}
 
-    /**
-     * Returns the full path without leading slash
-     *
-     * @return string
-     */
-    public function path(): string
-    {
-        // path to your own account
-        if ($this->model->isLoggedIn() === true) {
-            return 'account';
-        }
+		return Panel::url('site');
+	}
 
-        return 'users/' . $this->model->id();
-    }
+	/**
+	 * Default settings for the user's Panel image
+	 */
+	protected function imageDefaults(): array
+	{
+		return [
+			...parent::imageDefaults(),
+			'back'  => 'black',
+			'icon'  => 'user',
+			'ratio' => '1/1',
+		];
+	}
 
-    /**
-     * Returns prepared data for the panel user picker
-     *
-     * @param array|null $params
-     * @return array
-     */
-    public function pickerData(array $params = null): array
-    {
-        $params['text'] ??= '{{ user.username }}';
+	/**
+	 * Returns the image file object based on provided query
+	 */
+	protected function imageSource(
+		string|null $query = null
+	): CmsFile|Asset|null {
+		if ($query === null) {
+			return $this->model->avatar();
+		}
 
-        return array_merge(parent::pickerData($params), [
-            'email'    => $this->model->email(),
-            'username' => $this->model->username(),
-        ]);
-    }
+		return parent::imageSource($query);
+	}
 
-    /**
-     * Returns navigation array with
-     * previous and next user
-     *
-     * @internal
-     *
-     * @return array
-     */
-    public function prevNext(): array
-    {
-        $user = $this->model;
+	/**
+	 * Returns the full path without leading slash
+	 */
+	public function path(): string
+	{
+		// path to your own account
+		if ($this->model->isLoggedIn() === true) {
+			return 'account';
+		}
 
-        return [
-            'next' => function () use ($user) {
-                $next = $user->next();
-                return $next ? $next->panel()->toLink('username') : null;
-            },
-            'prev' => function () use ($user) {
-                $prev = $user->prev();
-                return $prev ? $prev->panel()->toLink('username') : null;
-            }
-        ];
-    }
+		return 'users/' . $this->model->id();
+	}
 
-    /**
-     * Returns the data array for the
-     * view's component props
-     *
-     * @internal
-     *
-     * @return array
-     */
-    public function props(): array
-    {
-        $user    = $this->model;
-        $account = $user->isLoggedIn();
-        $avatar  = $user->avatar();
+	/**
+	 * Returns prepared data for the panel user picker
+	 */
+	public function pickerData(array $params = []): array
+	{
+		$item = new UserItem(
+			user:   $this->model,
+			image:  $params['image'] ?? null,
+			info:   $params['info'] ?? null,
+			layout: $params['layout'] ?? null,
+			text:   $params['text'] ?? null,
+		);
 
-        return array_merge(
-            parent::props(),
-            $account ? [] : $this->prevNext(),
-            [
-                'blueprint' => $this->model->role()->name(),
-                'model' => [
-                    'account'  => $account,
-                    'avatar'   => $avatar ? $avatar->url() : null,
-                    'content'  => $this->content(),
-                    'email'    => $user->email(),
-                    'id'       => $user->id(),
-                    'language' => $this->translation()->name(),
-                    'link'     => $this->url(true),
-                    'name'     => $user->name()->toString(),
-                    'role'     => $user->role()->title(),
-                    'username' => $user->username(),
-                ]
-            ]
-        );
-    }
+		return [
+			...$item->props(),
+			'email'    => $this->model->email(),
+			'sortable' => true,
+			'username' => $this->model->username(),
+		];
+	}
 
-    /**
-     * Returns the Translation object
-     * for the selected Panel language
-     *
-     * @return \Kirby\Cms\Translation
-     */
-    public function translation()
-    {
-        $kirby = $this->model->kirby();
-        $lang  = $this->model->language();
-        return $kirby->translation($lang);
-    }
+	/**
+	 * Returns navigation array with
+	 * previous and next user
+	 */
+	public function prevNext(): array
+	{
+		$user     = $this->model;
+		$siblings = $user->siblings()->filter('isListable', true);
 
-    /**
-     * Returns the data array for
-     * this model's Panel view
-     *
-     * @internal
-     *
-     * @return array
-     */
-    public function view(): array
-    {
-        return [
-            'breadcrumb' => $this->breadcrumb(),
-            'component'  => 'k-user-view',
-            'props'      => $this->props(),
-            'title'      => $this->model->username(),
-        ];
-    }
+		return [
+			'next' => fn () => $this->toPrevNextLink($user->next($siblings), 'username'),
+			'prev' => fn () => $this->toPrevNextLink($user->prev($siblings), 'username')
+		];
+	}
+
+	/**
+	 * Returns the data array for the view's component props
+	 */
+	public function props(): array
+	{
+		$props       = parent::props();
+		$user        = $this->model;
+		$permissions = $this->options();
+
+		// Additional model information
+		// @deprecated Use the top-level props instead
+		$model = [
+			'account'  => $user->isLoggedIn(),
+			'avatar'   => $user->avatar()?->url(),
+			'email'    => $user->email(),
+			'id'       => $props['id'],
+			'language' => $this->translation()->name(),
+			'link'     => $props['link'],
+			'name'     => $user->name()->toString(),
+			'role'     => $user->role()->title(),
+			'username' => $user->username(),
+			'uuid'     => $props['uuid'],
+		];
+
+		return [
+			...parent::props(),
+			...$this->prevNext(),
+			'avatar'            => $model['avatar'],
+			'blueprint'         => $this->model->role()->name(),
+			'canChangeEmail'    => $permissions['changeEmail'],
+			'canChangeLanguage' => $permissions['changeLanguage'],
+			'canChangeName'     => $permissions['changeName'],
+			'canChangeRole'     => $this->model->roles()->count() > 1,
+			'email'             => $model['email'],
+			'language'          => $model['language'],
+			'model'             => $model,
+			'name'              => $model['name'],
+			'role'              => $model['role'],
+			'username'          => $model['username'],
+		];
+	}
+
+	/**
+	 * Returns the Translation object
+	 * for the selected Panel language
+	 */
+	public function translation(): Translation
+	{
+		$kirby = $this->model->kirby();
+		$lang  = $this->model->language();
+		return $kirby->translation($lang);
+	}
+
+	/**
+	 * Returns the data array for this model's Panel view
+	 */
+	public function view(): array
+	{
+		return [
+			'breadcrumb' => $this->breadcrumb(),
+			'component'  => 'k-user-view',
+			'props'      => $this->props(),
+			'title'      => $this->model->username(),
+		];
+	}
 }

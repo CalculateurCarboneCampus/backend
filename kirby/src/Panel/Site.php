@@ -2,6 +2,11 @@
 
 namespace Kirby\Panel;
 
+use Kirby\Cms\File as CmsFile;
+use Kirby\Cms\ModelWithContent;
+use Kirby\Filesystem\Asset;
+use Kirby\Panel\Ui\Buttons\ViewButtons;
+
 /**
  * Provides information about the site model for the Panel
  * @since 3.6.0
@@ -9,86 +14,99 @@ namespace Kirby\Panel;
  * @package   Kirby Panel
  * @author    Nico Hoffmann <nico@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://getkirby.com/license
  */
 class Site extends Model
 {
-    /**
-     * Returns the setup for a dropdown option
-     * which is used in the changes dropdown
-     * for example.
-     *
-     * @return array
-     */
-    public function dropdownOption(): array
-    {
-        return [
-            'icon' => 'home',
-            'text' => $this->model->title()->value(),
-        ] + parent::dropdownOption();
-    }
+	/**
+	 * @var \Kirby\Cms\Site
+	 */
+	protected ModelWithContent $model;
 
-    /**
-     * Returns the image file object based on provided query
-     *
-     * @internal
-     * @param string|null $query
-     * @return \Kirby\Cms\File|\Kirby\Filesystem\Asset|null
-     */
-    protected function imageSource(string $query = null)
-    {
-        if ($query === null) {
-            $query = 'site.image';
-        }
+	/**
+	 * Returns header buttons which should be displayed
+	 * on the site view
+	 */
+	public function buttons(): array
+	{
+		return ViewButtons::view($this)->defaults(
+			'open',
+			'preview',
+			'languages'
+		)->render();
+	}
 
-        return parent::imageSource($query);
-    }
+	/**
+	 * Returns the setup for a dropdown option
+	 * which is used in the changes dropdown
+	 * for example.
+	 *
+	 * @deprecated 5.1.4
+	 */
+	public function dropdownOption(): array
+	{
+		return [
+			'icon' => 'home',
+			'text' => $this->model->toSafeString('{{ site.title }}'),
+		] + parent::dropdownOption();
+	}
 
-    /**
-     * Returns the full path without leading slash
-     *
-     * @return string
-     */
-    public function path(): string
-    {
-        return 'site';
-    }
+	/**
+	 * Returns the image file object based on provided query
+	 */
+	protected function imageSource(
+		string|null $query = null
+	): CmsFile|Asset|null {
+		$query ??= 'site.image';
+		return parent::imageSource($query);
+	}
 
-    /**
-     * Returns the data array for the
-     * view's component props
-     *
-     * @internal
-     *
-     * @return array
-     */
-    public function props(): array
-    {
-        return array_merge(parent::props(), [
-            'blueprint' => 'site',
-            'model' => [
-                'content'    => $this->content(),
-                'link'       => $this->url(true),
-                'previewUrl' => $this->model->previewUrl(),
-                'title'      => $this->model->title()->toString(),
-            ]
-        ]);
-    }
+	/**
+	 * Returns the full path without leading slash
+	 */
+	public function path(): string
+	{
+		return 'site';
+	}
 
-    /**
-     * Returns the data array for
-     * this model's Panel view
-     *
-     * @internal
-     *
-     * @return array
-     */
-    public function view(): array
-    {
-        return [
-            'component' => 'k-site-view',
-            'props'     => $this->props()
-        ];
-    }
+	/**
+	 * Returns the data array for the view's component props
+	 */
+	public function props(): array
+	{
+		$props = parent::props();
+
+		// Additional model information
+		// @deprecated Use the top-level props instead
+		$model = [
+			'link'       => $props['link'],
+			'previewUrl' => $this->model->previewUrl(),
+			'title'      => $this->model->title()->toString(),
+			'uuid'       => $props['uuid'],
+		];
+
+		return [
+			...$props,
+			'blueprint'   => 'site',
+			'id'          => '/',
+			'model'       => $model,
+			'title'       => $model['title'],
+			'permissions' => [
+				...$props['permissions'],
+				'preview' => $this->model->homePage()?->permissions()->can('preview') === true,
+			],
+		];
+	}
+
+	/**
+	 * Returns the data array for this model's Panel view
+	 */
+	public function view(): array
+	{
+		return [
+			'component' => 'k-site-view',
+			'props'     => $this->props()
+		];
+	}
 }

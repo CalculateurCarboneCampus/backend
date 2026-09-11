@@ -1,551 +1,594 @@
 <?php
 
+use Kirby\Cms\App;
 use Kirby\Cms\Find;
+use Kirby\Cms\PageRules;
+use Kirby\Cms\Url;
 use Kirby\Exception\Exception;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\PermissionException;
+use Kirby\Panel\ChangesDialog;
 use Kirby\Panel\Field;
+use Kirby\Panel\PageCreateDialog;
 use Kirby\Panel\Panel;
+use Kirby\Toolkit\Escape;
+use Kirby\Toolkit\I18n;
 use Kirby\Toolkit\Str;
+use Kirby\Uuid\Uuids;
 
+$fields = require __DIR__ . '/../fields/dialogs.php';
 $files = require __DIR__ . '/../files/dialogs.php';
 
 return [
+	'page.changeSort' => [
+		'pattern' => 'pages/(:any)/changeSort',
+		'load' => function (string $id) {
+			$page = Find::page($id);
 
-    // change page position
-    'page.changeSort' => [
-        'pattern' => 'pages/(:any)/changeSort',
-        'load' => function (string $id) {
-            $page     = Find::page($id);
-            $position = null;
+			if ($page->blueprint()->num() !== 'default') {
+				throw new PermissionException(
+					key: 'page.sort.permission',
+					data: ['slug' => $page->slug()]
+				);
+			}
 
-            if ($page->blueprint()->num() !== 'default') {
-                throw new PermissionException([
-                    'key'  => 'page.sort.permission',
-                    'data' => [
-                        'slug' => $page->slug()
-                    ]
-                ]);
-            }
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields' => [
+						'position' => Field::pagePosition($page),
+					],
+					'submitButton' => I18n::translate('change'),
+					'value' => [
+						'position' => $page->panel()->position()
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$request = App::instance()->request();
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields' => [
-                        'position' => Field::pagePosition($page),
-                    ],
-                    'submitButton' => t('change'),
-                    'value' => [
-                        'position' => $page->panel()->position()
-                    ]
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            Find::page($id)->changeStatus('listed', get('position'));
-            return [
-                'event' => 'page.sort',
-            ];
-        }
-    ],
+			Find::page($id)->changeStatus(
+				'listed',
+				$request->get('position')
+			);
 
-    // change page status
-    'page.changeStatus' => [
-        'pattern' => 'pages/(:any)/changeStatus',
-        'load' => function (string $id) {
-            $page      = Find::page($id);
-            $blueprint = $page->blueprint();
-            $status    = $page->status();
-            $states    = [];
-            $position  = null;
+			return [
+				'event' => 'page.sort',
+			];
+		}
+	],
 
-            foreach ($blueprint->status() as $key => $state) {
-                $states[] = [
-                    'value' => $key,
-                    'text'  => $state['label'],
-                    'info'  => $state['text'],
-                ];
-            }
+	'page.changeStatus' => [
+		'pattern' => 'pages/(:any)/changeStatus',
+		'load' => function (string $id) {
+			$page      = Find::page($id);
+			$blueprint = $page->blueprint();
+			$status    = $page->status();
+			$states    = [];
+			$position  = null;
 
-            if ($status === 'draft') {
-                $errors = $page->errors();
+			foreach ($blueprint->status() as $key => $state) {
+				$states[] = [
+					'value' => $key,
+					'text'  => $state['label'],
+					'info'  => $state['text'],
+				];
+			}
 
-                // switch to the error dialog if there are
-                // errors and the draft cannot be published
-                if (count($errors) > 0) {
-                    return [
-                        'component' => 'k-error-dialog',
-                        'props'     => [
-                            'message' => t('error.page.changeStatus.incomplete'),
-                            'details' => $errors,
-                        ]
-                    ];
-                }
-            }
+			if ($status === 'draft') {
+				$errors = $page->errors();
 
-            $fields = [
-                'status' => [
-                    'label'    => t('page.changeStatus.select'),
-                    'type'     => 'radio',
-                    'required' => true,
-                    'options'  => $states
-                ]
-            ];
+				// switch to the error dialog if there are
+				// errors and the draft cannot be published
+				if (count($errors) > 0) {
+					return [
+						'component' => 'k-error-dialog',
+						'props'     => [
+							'message' => I18n::translate('error.page.changeStatus.incomplete'),
+							'details' => $errors,
+						]
+					];
+				}
+			}
 
-            if ($blueprint->num() === 'default') {
-                $fields['position'] = Field::pagePosition($page, [
-                    'when' => [
-                        'status' => 'listed'
-                    ]
-                ]);
+			$fields = [
+				'status' => [
+					'label'    => I18n::translate('page.changeStatus.select'),
+					'type'     => 'radio',
+					'required' => true,
+					'options'  => $states
+				]
+			];
 
-                $position = $page->panel()->position();
-            }
+			if ($blueprint->num() === 'default') {
+				$fields['position'] = Field::pagePosition($page, [
+					'when' => [
+						'status' => 'listed'
+					]
+				]);
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields'       => $fields,
-                    'submitButton' => t('change'),
-                    'value' => [
-                        'status'   => $status,
-                        'position' => $position
-                    ]
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            Find::page($id)->changeStatus(get('status'), get('position'));
-            return [
-                'event' => 'page.changeStatus',
-            ];
-        }
-    ],
+				$position = $page->panel()->position();
+			}
 
-    // change template
-    'page.changeTemplate' => [
-        'pattern' => 'pages/(:any)/changeTemplate',
-        'load' => function (string $id) {
-            $page       = Find::page($id);
-            $blueprints = $page->blueprints();
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields'       => $fields,
+					'submitButton' => I18n::translate('change'),
+					'value' => [
+						'status'   => $status,
+						'position' => $position
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$request = App::instance()->request();
 
-            if (count($blueprints) <= 1) {
-                throw new Exception([
-                    'key'  => 'page.changeTemplate.invalid',
-                    'data' => [
-                        'slug' => $id
-                    ]
-                ]);
-            }
+			Find::page($id)->changeStatus(
+				$request->get('status'),
+				$request->get('position')
+			);
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields' => [
-                        'template' => Field::template($blueprints, [
-                            'required' => true
-                        ])
-                    ],
-                    'submitButton' => t('change'),
-                    'value' => [
-                        'template' => $page->intendedTemplate()->name()
-                    ]
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            Find::page($id)->changeTemplate(get('template'));
-            return [
-                'event' => 'page.changeTemplate',
-            ];
-        }
-    ],
+			return [
+				'event' => 'page.changeStatus',
+			];
+		}
+	],
 
-    // change title
-    'page.changeTitle' => [
-        'pattern' => 'pages/(:any)/changeTitle',
-        'load' => function (string $id) {
-            $page        = Find::page($id);
-            $permissions = $page->permissions();
-            $select      = get('select', 'title');
+	'page.changeTemplate' => [
+		'pattern' => 'pages/(:any)/changeTemplate',
+		'load' => function (string $id) {
+			$page       = Find::page($id);
+			$blueprints = $page->blueprints();
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields' => [
-                        'title' => Field::title([
-                            'required'  => true,
-                            'preselect' => $select === 'title',
-                            'disabled'  => $permissions->can('changeTitle') === false
-                        ]),
-                        'slug' => Field::slug([
-                            'required'  => true,
-                            'preselect' => $select === 'slug',
-                            'path'      => $page->parent() ? '/' . $page->parent()->id() . '/' : '/',
-                            'disabled'  => $permissions->can('changeSlug') === false,
-                            'wizard'    => [
-                                'text'  => t('page.changeSlug.fromTitle'),
-                                'field' => 'title'
-                            ]
-                        ])
-                    ],
-                    'autofocus' => false,
-                    'submitButton' => t('change'),
-                    'value' => [
-                        'title' => $page->title()->value(),
-                        'slug'  => $page->slug(),
-                    ]
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            $page  = Find::page($id);
-            $title = trim(get('title', ''));
-            $slug  = trim(get('slug', ''));
+			if (count($blueprints) <= 1) {
+				throw new Exception(
+					key: 'page.changeTemplate.invalid',
+					data: ['slug' => $id]
+				);
+			}
 
-            // basic input validation before we move on
-            if (Str::length($title) === 0) {
-                throw new InvalidArgumentException([
-                    'key' => 'page.changeTitle.empty'
-                ]);
-            }
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields' => [
+						'notice' => [
+							'type'  => 'info',
+							'theme' => 'notice',
+							'text'  => I18n::translate('page.changeTemplate.notice')
+						],
+						'template' => Field::template($blueprints, [
+							'required' => true
+						])
+					],
+					'theme' => 'notice',
+					'submitButton' => I18n::translate('change'),
+					'value' => [
+						'template' => $page->intendedTemplate()->name()
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$page     = Find::page($id);
+			$template = App::instance()->request()->get('template');
 
-            if (Str::length($slug) === 0) {
-                throw new InvalidArgumentException([
-                    'key' => 'page.slug.invalid'
-                ]);
-            }
+			$page->changeTemplate($template);
 
-            // nothing changed
-            if ($page->title()->value() === $title && $page->slug() === $slug) {
-                return true;
-            }
+			return [
+				'event' => 'page.changeTemplate',
+			];
+		}
+	],
 
-            // prepare the response
-            $response = [
-                'event' => []
-            ];
+	'page.changeTitle' => [
+		'pattern' => 'pages/(:any)/changeTitle',
+		'load' => function (string $id) {
+			$kirby   = App::instance();
+			$request = $kirby->request();
 
-            // the page title changed
-            if ($page->title()->value() !== $title) {
-                $page->changeTitle($title);
-                $response['event'][] = 'page.changeTitle';
-            }
+			$page        = Find::page($id);
+			$permissions = $page->permissions();
+			$select      = $request->get('select', 'title');
 
-            // the slug changed
-            if ($page->slug() !== $slug) {
-                $newPage = $page->changeSlug($slug);
-                $response['event'][] = 'page.changeSlug';
-                $response['dispatch'] = [
-                    'content/move' => [
-                        $oldUrl = $page->panel()->url(true),
-                        $newUrl = $newPage->panel()->url(true)
-                    ]
-                ];
+			// build the path prefix
+			$path = match ($kirby->multilang()) {
+				true  => Str::after($kirby->site()->url(), $kirby->url()) . '/',
+				false => '/'
+			};
 
-                // check for a necessary redirect after the slug has changed
-                if (Panel::referrer() === $oldUrl && $oldUrl !== $newUrl) {
-                    $response['redirect'] = $newUrl;
-                }
-            }
+			if ($parent = $page->parent()) {
+				$path .= $parent->uri() . '/';
+			}
 
-            return $response;
-        }
-    ],
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields' => [
+						'title' => Field::title([
+							'required'  => true,
+							'preselect' => $select === 'title',
+							'disabled'  => $permissions->can('changeTitle') === false
+						]),
+						'slug' => Field::slug([
+							'required'  => true,
+							'preselect' => $select === 'slug',
+							'path'      => $path,
+							'disabled'  => $permissions->can('changeSlug') === false,
+							'wizard'    => [
+								'text'  => I18n::translate('page.changeSlug.fromTitle'),
+								'field' => 'title'
+							]
+						])
+					],
+					'autofocus' => false,
+					'submitButton' => I18n::translate('change'),
+					'value' => [
+						'title' => $page->title()->value(),
+						'slug'  => $page->slug(),
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$request = App::instance()->request();
 
-    // create a new page
-    'page.create' => [
-        'pattern' => 'pages/create',
-        'load' => function () {
-            // the parent model for the new page
-            $parent = get('parent', 'site');
+			$page  = Find::page($id);
+			$title = trim($request->get('title', ''));
+			$slug  = trim($request->get('slug', ''));
 
-            // the view on which the add button is located
-            // this is important to find the right section
-            // and provide the correct templates for the new page
-            $view = get('view', $parent);
+			// basic input validation before we move on
+			PageRules::validateTitleLength($title);
+			PageRules::validateSlugLength($slug);
 
-            // templates will be fetched depending on the
-            // section settings in the blueprint
-            $section = get('section');
+			// nothing changed
+			if ($page->title()->value() === $title && $page->slug() === $slug) {
+				return true;
+			}
 
-            // this is the parent model
-            $model = Find::parent($parent);
+			// prepare the response
+			$response = [
+				'event' => []
+			];
 
-            // this is the view model
-            // i.e. site if the add button is on
-            // the dashboard
-            $view = Find::parent($view);
+			// the page title changed
+			if ($page->title()->value() !== $title) {
+				$page = $page->changeTitle($title);
+				$response['event'][] = 'page.changeTitle';
+			}
 
-            // available blueprints/templates for the new page
-            // are always loaded depending on the matching section
-            // in the view model blueprint
-            $blueprints = $view->blueprints($section);
+			// the slug changed
+			if ($page->slug() !== $slug) {
+				$response['event'][] = 'page.changeSlug';
 
-            // the pre-selected template
-            $template = $blueprints[0]['name'] ?? $blueprints[0]['value'] ?? null;
+				$newPage = $page->changeSlug($slug);
+				$oldUrl  = $page->panel()->url(true);
+				$newUrl  = $newPage->panel()->url(true);
 
-            $fields = [
-                'parent' => Field::hidden(),
-                'title'  => Field::title([
-                    'required'  => true,
-                    'preselect' => true
-                ]),
-                'slug'   => Field::slug([
-                    'required' => true,
-                    'sync'     => 'title',
-                    'path'     => empty($model->id()) === false ? '/' . $model->id() . '/' : '/'
-                ]),
-                'template' => Field::hidden()
-            ];
+				// check for a necessary redirect after the slug has changed
+				if (Panel::referrer() === $oldUrl && $oldUrl !== $newUrl) {
+					$response['redirect'] = $newUrl;
+				}
+			}
 
-            // only show template field if > 1 templates available
-            // or when in debug mode
-            if (count($blueprints) > 1 || option('debug') === true) {
-                $fields['template'] = Field::template($blueprints, [
-                    'required' => true
-                ]);
-            }
+			return $response;
+		}
+	],
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields' => $fields,
-                    'submitButton' => t('page.draft.create'),
-                    'value' => [
-                        'parent'   => $parent,
-                        'slug'     => '',
-                        'template' => $template,
-                        'title'    => '',
-                    ]
-                ]
-            ];
-        },
-        'submit' => function () {
-            $title = trim(get('title', ''));
+	'page.create' => [
+		'pattern' => 'pages/create',
+		'load' => function () {
+			$request = App::instance()->request();
+			$dialog  = new PageCreateDialog(
+				parentId: $request->get('parent'),
+				sectionId: $request->get('section'),
+				slug: $request->get('slug'),
+				template: $request->get('template'),
+				title: $request->get('title'),
+				uuid: $request->get('uuid'),
+				viewId: $request->get('view'),
+			);
 
-            if (Str::length($title) === 0) {
-                throw new InvalidArgumentException([
-                    'key' => 'page.changeTitle.empty'
-                ]);
-            }
+			return $dialog->load();
+		},
+		'submit' => function () {
+			$request = App::instance()->request();
+			$dialog  = new PageCreateDialog(
+				parentId: $request->get('parent'),
+				sectionId: $request->get('section'),
+				slug: $request->get('slug'),
+				template: $request->get('template'),
+				title: $request->get('title'),
+				uuid: $request->get('uuid'),
+				viewId: $request->get('view'),
+			);
 
-            $page = Find::parent(get('parent', 'site'))->createChild([
-                'content'  => ['title' => $title],
-                'slug'     => get('slug'),
-                'template' => get('template'),
-            ]);
+			return $dialog->submit($request->get());
+		}
+	],
 
-            return [
-                'event'    => 'page.create',
-                'redirect' => $page->panel()->url(true)
-            ];
-        }
-    ],
+	'page.delete' => [
+		'pattern' => 'pages/(:any)/delete',
+		'load' => function (string $id) {
+			$page = Find::page($id);
+			$text = I18n::template('page.delete.confirm', [
+				'title' => Escape::html($page->title()->value())
+			]);
 
-    // delete page
-    'page.delete' => [
-        'pattern' => 'pages/(:any)/delete',
-        'load' => function (string $id) {
-            $page = Find::page($id);
-            $text = tt('page.delete.confirm', [
-                'title' => Escape::html($page->title()->value())
-            ]);
+			if ($page->childrenAndDrafts()->count() > 0) {
+				return [
+					'component' => 'k-form-dialog',
+					'props' => [
+						'fields' => [
+							'info' => [
+								'type'  => 'info',
+								'theme' => 'negative',
+								'text'  => I18n::translate('page.delete.confirm.subpages')
+							],
+							'check' => [
+								'label'   => I18n::translate('page.delete.confirm.title'),
+								'type'    => 'text',
+								'counter' => false
+							]
+						],
+						'size'         => 'medium',
+						'submitButton' => I18n::translate('delete'),
+						'text'         => $text,
+						'theme'        => 'negative',
+					]
+				];
+			}
 
-            if ($page->childrenAndDrafts()->count() > 0) {
-                return [
-                    'component' => 'k-form-dialog',
-                    'props' => [
-                        'fields' => [
-                            'info' => [
-                                'type'  => 'info',
-                                'theme' => 'negative',
-                                'text'  => t('page.delete.confirm.subpages')
-                            ],
-                            'check' => [
-                                'label'   => t('page.delete.confirm.title'),
-                                'type'    => 'text',
-                                'counter' => false
-                            ]
-                        ],
-                        'size'         => 'medium',
-                        'submitButton' => t('delete'),
-                        'text'         => $text,
-                        'theme'        => 'negative',
-                    ]
-                ];
-            }
+			return [
+				'component' => 'k-remove-dialog',
+				'props' => [
+					'text' => $text
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$request = App::instance()->request();
 
-            return [
-                'component' => 'k-remove-dialog',
-                'props' => [
-                    'text' => $text
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            $page     = Find::page($id);
-            $redirect = false;
-            $referrer = Panel::referrer();
-            $url      = $page->panel()->url(true);
+			$page     = Find::page($id);
+			$redirect = false;
+			$referrer = Panel::referrer();
+			$url      = $page->panel()->url(true);
 
-            if ($page->childrenAndDrafts()->count() > 0 && get('check') !== $page->title()->value()) {
-                throw new InvalidArgumentException(['key' => 'page.delete.confirm']);
-            }
+			if (
+				$page->childrenAndDrafts()->count() > 0 &&
+				$request->get('check') !== $page->title()->value()
+			) {
+				throw new InvalidArgumentException(
+					key: 'page.delete.confirm'
+				);
+			}
 
-            $page->delete(true);
+			$page->delete(true);
 
-            // redirect to the parent model URL
-            // if the dialog has been opened in the page view
-            if ($referrer === $url) {
-                $redirect = $page->parentModel()->panel()->url(true);
-            }
+			// redirect to the parent model URL
+			// if the dialog has been opened in the page view
+			if ($referrer === $url) {
+				$redirect = $page->parentModel()->panel()->url(true);
+			}
 
-            return [
-                'event'    => 'page.delete',
-                'dispatch' => ['content/remove' => [$url]],
-                'redirect' => $redirect
-            ];
-        }
-    ],
+			return [
+				'event'    => 'page.delete',
+				'redirect' => $redirect
+			];
+		}
+	],
 
-    // duplicate page
-    'page.duplicate' => [
-        'pattern' => 'pages/(:any)/duplicate',
-        'load' => function (string $id) {
-            $page            = Find::page($id);
-            $hasChildren     = $page->hasChildren();
-            $hasFiles        = $page->hasFiles();
-            $toggleWidth     = '1/' . count(array_filter([$hasChildren, $hasFiles]));
+	'page.duplicate' => [
+		'pattern' => 'pages/(:any)/duplicate',
+		'load' => function (string $id) {
+			$page            = Find::page($id);
+			$hasChildren     = $page->hasChildren();
+			$hasFiles        = $page->hasFiles();
+			$toggleWidth     = '1/' . count(array_filter([$hasChildren, $hasFiles]));
 
-            $fields = [
-                'title' => Field::title([
-                    'required' => true
-                ]),
-                'slug' => Field::slug([
-                    'required' => true,
-                    'path'     => $page->parent() ? '/' . $page->parent()->id() . '/' : '/',
-                    'wizard'   => [
-                        'text'  => t('page.changeSlug.fromTitle'),
-                        'field' => 'title'
-                    ]
-                ])
-            ];
+			$fields = [
+				'title' => Field::title([
+					'required' => true
+				]),
+				'slug' => Field::slug([
+					'required' => true,
+					'path'     => $page->parent() ? '/' . $page->parent()->id() . '/' : '/',
+					'wizard'   => [
+						'text'  => I18n::translate('page.changeSlug.fromTitle'),
+						'field' => 'title'
+					]
+				])
+			];
 
-            if ($hasFiles === true) {
-                $fields['files'] = [
-                    'label'    => t('page.duplicate.files'),
-                    'type'     => 'toggle',
-                    'required' => true,
-                    'width'    => $toggleWidth
-                ];
-            }
+			if ($hasFiles === true) {
+				$fields['files'] = [
+					'label' => I18n::translate('page.duplicate.files'),
+					'type'  => 'toggle',
+					'width' => $toggleWidth
+				];
+			}
 
-            if ($hasChildren === true) {
-                $fields['children'] = [
-                    'label'    => t('page.duplicate.pages'),
-                    'type'     => 'toggle',
-                    'required' => true,
-                    'width'    => $toggleWidth
-                ];
-            }
+			if ($hasChildren === true) {
+				$fields['children'] = [
+					'label' => I18n::translate('page.duplicate.pages'),
+					'type'  => 'toggle',
+					'width' => $toggleWidth
+				];
+			}
 
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields'       => $fields,
-                    'submitButton' => t('duplicate'),
-                    'value' => [
-                        'children' => false,
-                        'files'    => false,
-                        'slug'     => $page->slug() . '-' . Str::slug(t('page.duplicate.appendix')),
-                        'title'    => $page->title() . ' ' . t('page.duplicate.appendix')
-                    ]
-                ]
-            ];
-        },
-        'submit' => function (string $id) {
-            $newPage = Find::page($id)->duplicate(get('slug'), [
-                'children' => (bool)get('children'),
-                'files'    => (bool)get('files'),
-                'title'    => (string)get('title'),
-            ]);
+			$slugAppendix  = Url::slug(I18n::translate('page.duplicate.appendix'));
+			$titleAppendix = I18n::translate('page.duplicate.appendix');
 
-            return [
-                'event'    => 'page.duplicate',
-                'redirect' => $newPage->panel()->url(true)
-            ];
-        }
-    ],
+			// if the item to be duplicated already exists
+			// add a suffix at the end of slug and title
+			$duplicateSlug = $page->slug() . '-' . $slugAppendix;
+			$siblingKeys   = $page->parentModel()->childrenAndDrafts()->pluck('uid');
 
-    // change filename
-    'page.file.changeName' => [
-        'pattern' => '(pages/.*?)/files/(:any)/changeName',
-        'load'    => $files['changeName']['load'],
-        'submit'  => $files['changeName']['submit'],
-    ],
+			if (in_array($duplicateSlug, $siblingKeys, true) === true) {
+				$suffixCounter = 2;
+				$newSlug       = $duplicateSlug . $suffixCounter;
 
-    // change sort
-    'page.file.changeSort' => [
-        'pattern' => '(pages/.*?)/files/(:any)/changeSort',
-        'load'    => $files['changeSort']['load'],
-        'submit'  => $files['changeSort']['submit'],
-    ],
+				while (in_array($newSlug, $siblingKeys, true) === true) {
+					$newSlug = $duplicateSlug . ++$suffixCounter;
+				}
 
-    // delete
-    'page.file.delete' => [
-        'pattern' => '(pages/.*?)/files/(:any)/delete',
-        'load'    => $files['delete']['load'],
-        'submit'  => $files['delete']['submit'],
-    ],
+				$slugAppendix  .= $suffixCounter;
+				$titleAppendix .= ' ' . $suffixCounter;
+			}
 
-    // change site title
-    'site.changeTitle' => [
-        'pattern' => 'site/changeTitle',
-        'load' => function () {
-            return [
-                'component' => 'k-form-dialog',
-                'props' => [
-                    'fields' => [
-                        'title' => Field::title([
-                            'required'  => true,
-                            'preselect' => true
-                        ])
-                    ],
-                    'submitButton' => t('rename'),
-                    'value' => [
-                        'title' => site()->title()->value()
-                    ]
-                ]
-            ];
-        },
-        'submit' => function () {
-            site()->changeTitle(get('title'));
-            return [
-                'event' => 'site.changeTitle',
-            ];
-        }
-    ],
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields'       => $fields,
+					'submitButton' => I18n::translate('duplicate'),
+					'value' => [
+						'children' => false,
+						'files'    => false,
+						'slug'     => $page->slug() . '-' . $slugAppendix,
+						'title'    => $page->title() . ' ' . $titleAppendix
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$request = App::instance()->request();
 
-    // change filename
-    'site.file.changeName' => [
-        'pattern' => '(site)/files/(:any)/changeName',
-        'load'    => $files['changeName']['load'],
-        'submit'  => $files['changeName']['submit'],
-    ],
+			$newPage = Find::page($id)->duplicate($request->get('slug'), [
+				'children' => (bool)$request->get('children'),
+				'files'    => (bool)$request->get('files'),
+				'title'    => (string)$request->get('title'),
+			]);
 
-    // change sort
-    'site.file.changeSort' => [
-        'pattern' => '(site)/files/(:any)/changeSort',
-        'load'    => $files['changeSort']['load'],
-        'submit'  => $files['changeSort']['submit'],
-    ],
+			return [
+				'event'    => 'page.duplicate',
+				'redirect' => $newPage->panel()->url(true)
+			];
+		}
+	],
 
-    // delete
-    'site.file.delete' => [
-        'pattern' => '(site)/files/(:any)/delete',
-        'load'    => $files['delete']['load'],
-        'submit'  => $files['delete']['submit'],
-    ],
+	'page.fields' => [
+		...$fields['model'],
+		'pattern' => '(pages/[^/]+)/fields/(:any)/(:all?)',
+	],
+	'page.file.changeName' => [
+		...$files['changeName'],
+		'pattern' => '(pages/[^/]+)/files/(:any)/changeName',
+	],
+	'page.file.changeSort' => [
+		...$files['changeSort'],
+		'pattern' => '(pages/[^/]+)/files/(:any)/changeSort',
+	],
+	'page.file.changeTemplate' => [
+		...$files['changeTemplate'],
+		'pattern' => '(pages/[^/]+)/files/(:any)/changeTemplate',
+	],
+	'page.file.delete' => [
+		...$files['delete'],
+		'pattern' => '(pages/[^/]+)/files/(:any)/delete',
+	],
+	'page.file.fields' => [
+		...$fields['file'],
+		'pattern' => '(pages/[^/]+)/files/(:any)/fields/(:any)/(:all?)',
+	],
 
+	'page.move' => [
+		'pattern' => 'pages/(:any)/move',
+		'load'    => function (string $id) {
+			$page   = Find::page($id);
+			$parent = $page->parentModel();
+
+			if (Uuids::enabled() === false) {
+				$parentId = $parent?->id() ?? '/';
+			} else {
+				$parentId = $parent?->uuid()->toString() ?? 'site://';
+			}
+
+			return [
+				'component' => 'k-page-move-dialog',
+				'props' => [
+					'value' => [
+						'move'   => $page->panel()->url(true),
+						'parent' => $parentId
+					]
+				]
+			];
+		},
+		'submit' => function (string $id) {
+			$kirby    = App::instance();
+			$parentId = $kirby->request()->get('parent');
+			$parent   = (empty($parentId) === true || $parentId === '/' || $parentId === 'site://') ? Find::site() : Find::page($parentId);
+			$oldPage  = Find::page($id);
+			$newPage  = $oldPage->move($parent);
+
+			return [
+				'event'    => 'page.move',
+				'redirect' => $newPage->panel()->url(true)
+			];
+		}
+	],
+
+	'site.changeTitle' => [
+		'pattern' => 'site/changeTitle',
+		'load' => function () {
+			$site = Find::site();
+
+			return [
+				'component' => 'k-form-dialog',
+				'props' => [
+					'fields' => [
+						'title' => Field::title([
+							'required'  => true,
+							'preselect' => true
+						])
+					],
+					'submitButton' => I18n::translate('rename'),
+					'value' => [
+						'title' => $site->title()->value()
+					]
+				]
+			];
+		},
+		'submit' => function () {
+			$kirby = App::instance();
+			Find::site()->changeTitle($kirby->request()->get('title'));
+
+			return [
+				'event' => 'site.changeTitle',
+			];
+		}
+	],
+
+	'site.fields' => [
+		...$fields['model'],
+		'pattern' => '(site)/fields/(:any)/(:all?)',
+	],
+	'site.file.changeName' => [
+		...$files['changeName'],
+		'pattern' => '(site)/files/(:any)/changeName',
+	],
+	'site.file.changeSort' => [
+		...$files['changeSort'],
+		'pattern' => '(site)/files/(:any)/changeSort',
+	],
+	'site.file.changeTemplate' => [
+		...$files['changeTemplate'],
+		'pattern' => '(site)/files/(:any)/changeTemplate',
+	],
+	'site.file.delete' => [
+		...$files['delete'],
+		'pattern' => '(site)/files/(:any)/delete',
+	],
+	'site.file.fields' => [
+		...$fields['file'],
+		'pattern' => '(site)/files/(:any)/fields/(:any)/(:all?)',
+	],
+
+	'changes' => [
+		'pattern' => 'changes',
+		'load'    => function () {
+			return (new ChangesDialog())->load();
+		},
+	],
 ];

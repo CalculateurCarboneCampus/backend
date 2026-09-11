@@ -3,6 +3,7 @@
 namespace Kirby\Http;
 
 use Kirby\Toolkit\Obj;
+use Stringable;
 
 /**
  * A wrapper around a URL query string
@@ -12,47 +13,65 @@ use Kirby\Toolkit\Obj;
  * @package   Kirby Http
  * @author    Bastian Allgeier <bastian@getkirby.com>
  * @link      https://getkirby.com
- * @copyright Bastian Allgeier GmbH
+ * @copyright Bastian Allgeier
  * @license   https://opensource.org/licenses/MIT
  */
-class Query extends Obj
+class Query extends Obj implements Stringable
 {
-    public function __construct($query)
-    {
-        if (is_string($query) === true) {
-            parse_str(ltrim($query, '?'), $query);
-        }
+	public function __construct(string|array|null $query)
+	{
+		if (is_string($query) === true) {
+			parse_str(ltrim($query, '?'), $query);
+		}
 
-        parent::__construct($query ?? []);
-    }
+		parent::__construct($query ?? []);
+	}
 
-    public function isEmpty(): bool
-    {
-        return empty((array)$this) === true;
-    }
+	public function isEmpty(): bool
+	{
+		return (array)$this === [];
+	}
 
-    public function isNotEmpty(): bool
-    {
-        return empty((array)$this) === false;
-    }
+	public function isNotEmpty(): bool
+	{
+		return $this->isEmpty() === false;
+	}
 
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
+	/**
+	 * Merges the current query with the given query
+	 * @since 5.1.0
+	 *
+	 * @return $this
+	 */
+	public function merge(string|array|null $query): static
+	{
+		$query = new static($query);
 
-    public function toString($questionMark = false): string
-    {
-        $query = http_build_query($this, '', '&', PHP_QUERY_RFC3986);
+		foreach ($query as $key => $value) {
+			$this->$key = $value;
+		}
 
-        if (empty($query) === true) {
-            return '';
-        }
+		return $this;
+	}
 
-        if ($questionMark === true) {
-            $query = '?' . $query;
-        }
+	public function toString(bool $questionMark = false): string
+	{
+		$query = http_build_query($this, '', '&', PHP_QUERY_RFC3986);
 
-        return $query;
-    }
+		if ($query === '') {
+			return '';
+		}
+
+		if ($questionMark === true) {
+			$query = '?' . $query;
+		}
+
+		return $query;
+	}
+
+
+	public function __toString(): string
+	{
+		return $this->toString();
+	}
 }

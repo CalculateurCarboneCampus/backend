@@ -1,28 +1,27 @@
 <?php
 
+use Kirby\Cms\Find;
+
 /**
  * Roles Routes
  */
 return [
-    [
-        'pattern' => 'roles',
-        'method'  => 'GET',
-        'action'  => function () {
-            switch (get('canBe')) {
-                case 'changed':
-                    return $this->kirby()->roles()->canBeChanged();
-                case 'created':
-                    return $this->kirby()->roles()->canBeCreated();
-                default:
-                    return $this->kirby()->roles();
-            }
-        }
-    ],
-    [
-        'pattern' => 'roles/(:any)',
-        'method'  => 'GET',
-        'action'  => function (string $name) {
-            return $this->kirby()->roles()->find($name);
-        }
-    ]
+	[
+		'pattern' => 'roles',
+		'method'  => 'GET',
+		'action'  => function () {
+			return match ($this->requestQuery('canBe')) {
+				'changed' => Find::roles()->canBeChanged(),
+				'created' => Find::roles()->canBeCreated(),
+				default   => Find::roles()
+			};
+		}
+	],
+	[
+		'pattern' => 'roles/(:any)',
+		'method'  => 'GET',
+		'action'  => function (string $name) {
+			return Find::role($name);
+		}
+	]
 ];
