@@ -50,7 +50,7 @@ fields:
     width: 1/2
 
   tags:
-    label: Filtre du matériel par champs
+    label: Domaine·s
     type: pages
     query: site.find('liste-des-categories-de-materiaux').childrenAndDrafts
     multiple: true
