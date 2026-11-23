@@ -52,7 +52,7 @@ fields:
   tags:
     label: Domaine·s
     type: pages
-    query: site.find('liste-des-categories-de-materiaux').childrenAndDrafts
+    query: site.find('domaines').childrenAndDrafts
     multiple: true
     width: 1/2
 
