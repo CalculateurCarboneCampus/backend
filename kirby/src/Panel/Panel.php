@@ -8,6 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Cms\Url as CmsUrl;
 use Kirby\Cms\User;
 use Kirby\Exception\Exception;
+use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\NotFoundException;
 use Kirby\Exception\PermissionException;
 use Kirby\Http\Response;
@@ -336,6 +337,18 @@ class Panel
 					static::firewall($kirby->user(), $areaId);
 				}
 
+				// only views can be opened by navigating to them,
+				// all other routes need the CSRF token of the Panel
+				if (
+					$type !== 'view' &&
+					$kirby->auth()->type() === 'session' &&
+					$kirby->auth()->csrf() === false
+				) {
+					throw new InvalidArgumentException(
+						message: 'Invalid CSRF token'
+					);
+				}
+
 				$result = $route->action()->call($route, ...$route->arguments());
 			} catch (Throwable $e) {
 				$result = $e;
@@ -406,7 +419,9 @@ class Panel
 		// catch all route
 		$routes[] = [
 			'pattern' => '(:all)',
-			'action'  => fn (string $pattern) => 'Could not find Panel view for route: ' . $pattern
+			'action'  => fn (string $pattern) => new NotFoundException(
+				message: 'Could not find Panel view for route: ' . $pattern
+			)
 		];
 
 		return $routes;
@@ -558,8 +573,9 @@ class Panel
 
 	/**
 	 * Set the current language in multi-lang
-	 * installations based on the session or the
-	 * query language query parameter
+	 * installations based on the `language` query
+	 * parameter, the `x-language` request header
+	 * or the session
 	 */
 	public static function setLanguage(): string|null
 	{
@@ -573,9 +589,16 @@ class Panel
 				$fallback = $defaultLanguage->code();
 			}
 
+			$request         = $kirby->request();
 			$session         = $kirby->session();
 			$sessionLanguage = $session->get('panel.language', $fallback);
-			$language        = $kirby->request()->get('language') ?? $sessionLanguage;
+
+			// the header carries the language of the requesting Panel tab,
+			// the session is only the fallback for the first request of a tab
+			$language =
+				$request->get('language') ??
+				$request->header('x-language') ??
+				$sessionLanguage;
 
 			// keep the language for the next visit
 			if ($language !== $sessionLanguage) {

@@ -200,12 +200,13 @@ class PageRules
 
 	/**
 	 * Validates if the page can be created
+	 * before its content has been added
 	 *
 	 * @throws \Kirby\Exception\DuplicateException If the same page or a draft already exists
 	 * @throws \Kirby\Exception\InvalidArgumentException If the slug is invalid
 	 * @throws \Kirby\Exception\PermissionException If the user is not allowed to create this page
 	 */
-	public static function create(Page $page): void
+	public static function creatable(Page $page): void
 	{
 		if ($page->permissions()->can('create') !== true) {
 			throw new PermissionException(
@@ -250,10 +251,29 @@ class PageRules
 	}
 
 	/**
+	 * Validates if the page can be created
+	 * including its content
+	 *
+	 * @throws \Kirby\Exception\DuplicateException If the same page or a draft already exists
+	 * @throws \Kirby\Exception\InvalidArgumentException If the slug is invalid
+	 * @throws \Kirby\Exception\PermissionException If the user is not allowed to create this page or the content of a non-draft is incomplete
+	 */
+	public static function create(Page $page): void
+	{
+		static::creatable($page);
+
+		// a non-draft page must have complete content,
+		// just like a draft that gets published
+		if ($page->isDraft() === false) {
+			static::validateContent($page);
+		}
+	}
+
+	/**
 	 * Validates if the page can be deleted
 	 *
 	 * @throws \Kirby\Exception\LogicException If the page has children and should not be force-deleted
-	 * @throws \Kirby\Exception\PermissionException If the user is not allowed to delete the page
+	 * @throws \Kirby\Exception\PermissionException If the user is not allowed to delete the page, one of its files or subpages
 	 */
 	public static function delete(Page $page, bool $force = false): void
 	{
@@ -266,6 +286,16 @@ class PageRules
 
 		if (($page->hasChildren() === true || $page->hasDrafts() === true) && $force === false) {
 			throw new LogicException(key: 'page.delete.hasChildren');
+		}
+
+		// files and subpages get deleted with the page, so check them
+		// upfront instead of failing halfway through the deletion
+		foreach ($page->files() as $file) {
+			FileRules::delete($file);
+		}
+
+		foreach ($page->childrenAndDrafts() as $child) {
+			static::delete($child, force: true);
 		}
 	}
 
@@ -287,6 +317,7 @@ class PageRules
 		}
 
 		self::validateSlugLength($slug);
+		self::validateSlugProtectedPaths($page, $slug);
 	}
 
 	/**
@@ -317,6 +348,8 @@ class PageRules
 		) {
 			throw new LogicException(key: 'page.move.ancestor');
 		}
+
+		self::validateSlugProtectedPaths($page, $page->slug(), $parent);
 
 		// check for duplicates
 		if ($parent->childrenAndDrafts()->find($page->slug())) {
@@ -388,11 +421,8 @@ class PageRules
 			);
 		}
 
-		if ($page->isDraft() === true && empty($page->errors()) === false) {
-			throw new PermissionException(
-				key:  'page.changeStatus.incomplete',
-				details: $page->errors()
-			);
+		if ($page->isDraft() === true) {
+			self::validateContent($page);
 		}
 	}
 
@@ -407,6 +437,45 @@ class PageRules
 			throw new PermissionException(
 				key: 'page.update.permission',
 				data: ['slug' => $page->slug()]
+			);
+		}
+	}
+
+	/**
+	 * Validates that the page content has no errors
+	 * in any language
+	 *
+	 * @throws \Kirby\Exception\PermissionException If the content is not complete
+	 */
+	public static function validateContent(Page $page): void
+	{
+		$errors = $page->errors();
+
+		// the errors above only cover the current language,
+		// so the content of all other languages must be validated too
+		if ($errors === [] && $page->kirby()->multilang() === true) {
+			foreach ($page->kirby()->languages() as $language) {
+				$errors = $page->version()->errors($language);
+
+				if ($errors !== []) {
+					// add the language to the error details
+					// to make clear which translation is incomplete
+					foreach ($errors as $name => $error) {
+						$label = $error['label'] ?? $name;
+
+						$errors[$name]['label']    = $label . ' (' . $language->name() . ')';
+						$errors[$name]['language'] = $language->code();
+					}
+
+					break;
+				}
+			}
+		}
+
+		if ($errors !== []) {
+			throw new PermissionException(
+				key: 'page.changeStatus.incomplete',
+				details: $errors
 			);
 		}
 	}
@@ -446,22 +515,27 @@ class PageRules
 	 */
 	protected static function validateSlugProtectedPaths(
 		Page $page,
-		string $slug
+		string $slug,
+		Site|Page|null $parent = null
 	): void {
-		if ($page->parent() === null) {
-			$paths = A::map(
-				['api', 'assets', 'media', 'panel'],
-				fn ($url) => $page->kirby()->url($url, true)->path()->toString()
+		$parent ??= $page->parent();
+
+		if ($parent instanceof Page === true) {
+			return;
+		}
+
+		$paths = A::map(
+			['api', 'assets', 'media', 'panel'],
+			fn ($url) => $page->kirby()->url($url, true)->path()->toString()
+		);
+
+		$index = array_search($slug, $paths);
+
+		if ($index !== false) {
+			throw new InvalidArgumentException(
+				key: 'page.changeSlug.reserved',
+				data: ['path' => $paths[$index]]
 			);
-
-			$index = array_search($slug, $paths);
-
-			if ($index !== false) {
-				throw new InvalidArgumentException(
-					key: 'page.changeSlug.reserved',
-					data: ['path' => $paths[$index]]
-				);
-			}
 		}
 	}
 

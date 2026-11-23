@@ -11,6 +11,7 @@ use Kirby\Exception\DuplicateException;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\LogicException;
 use Kirby\Filesystem\Dir;
+use Kirby\Template\Template;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\BlockCollectionAccess;
 use Kirby\Toolkit\I18n;
@@ -457,11 +458,18 @@ trait PageActions
 			'translations' => null
 		]);
 
-		// merge the content with the defaults
-		$props['content'] = [
-			...$page->createDefaultContent(),
-			...$props['content'],
-		];
+		// keep the initial storage class
+		$storage = $page->storage()::class;
+
+		// Make sure that the page does not already exist at this point.
+		// Otherwise, moving the storage to memory storage, might delete
+		// an existing page before we can even run the checks.
+		// The full create rules incl. content validation run in the commit.
+		PageRules::creatable($page);
+
+		// merge the content with the defaults and run it through
+		// the fields to apply their save handlers
+		$props['content'] = $page->createContent($props['content']);
 
 		// make sure that a UUID gets generated
 		// and added to content right away
@@ -469,22 +477,17 @@ trait PageActions
 			$props['content']['uuid'] ??= Uuid::generate();
 		}
 
-		// keep the initial storage class
-		$storage = $page->storage()::class;
-
-		// Make sure that the page does not already exist at this point.
-		// Otherwise, moving the storage to memory storage, might delete
-		// an existing page before we can even run the checks.
-		PageRules::create($page);
-
 		// make sure that the temporary page is stored in memory
 		$page->changeStorage(MemoryStorage::class);
 
 		// inject the content
 		$page->setContent($props['content']);
 
-		// inject the translations
-		$page->setTranslations($props['translations'] ?? null);
+		// inject the translations and run their content through
+		// the fields to apply their save handlers
+		$page->setTranslations(
+			$page->createTranslations($props['translations'] ?? null)
+		);
 
 		// run the hooks and creation action
 		$page = $page->commit(
@@ -602,10 +605,6 @@ trait PageActions
 		return $this->commit('delete', ['page' => $this, 'force' => $force], function ($page, $force) {
 			$old = $page->clone();
 
-			// keep the content in iummtable memory storage
-			// to still have access to it in after hooks
-			$page->changeStorage(ImmutableMemoryStorage::class);
-
 			// clear UUID cache
 			$page->uuid()?->clear(recursive: true);
 
@@ -628,6 +627,11 @@ trait PageActions
 			while ($child = $page->childrenAndDrafts()->first()) {
 				$child->delete(true);
 			}
+
+			// keep the content in immutable memory storage
+			// to still have access to it in after hooks;
+			// only now, so a failure above can't lose the content
+			$page->changeStorage(ImmutableMemoryStorage::class);
 
 			// delete all versions,
 			// the plain text storage handler will then clean
@@ -712,6 +716,9 @@ trait PageActions
 				);
 			}
 
+			// media folder is bound to the page id, which just changed
+			Dir::remove($page->mediaRoot());
+
 			// flush all collection caches to be sure that
 			// the new child is included afterwards
 			$parent->purge();
@@ -731,19 +738,39 @@ trait PageActions
 
 	protected static function normalizeProps(array $props): array
 	{
-		// Prevent injecting blueprint as this always must be derived from
-		// the template/model name and blueprint object in the app,
-		// never directly be supplied by the caller
-		unset($props['blueprint']);
+		unset(
+			// Prevent injecting blueprint as this always must be derived from
+			// the template/model name and blueprint object in the app,
+			// never directly be supplied by the caller
+			$props['blueprint'],
+
+			// Prevent injecting the root and dirname as those must always be
+			// derived from the parent and slug. Otherwise the caller could
+			// place the page's content at an arbitrary path on disk.
+			$props['dirname'],
+			$props['root'],
+
+			// Prevent injecting in-memory children, drafts and files.
+			// The content validation for public pages renders the
+			// blueprint sections, which store UUIDs for listed pages
+			// and would thus write injected pages to disk (also to an
+			// injected root). Injected files and pages would also count
+			// towards the min/max validation of pages and files sections.
+			$props['children'],
+			$props['drafts'],
+			$props['files']
+		);
 
 		$content  = $props['content']  ?? [];
-		$template = $props['template'] ?? 'default';
+		$template = Template::sanitizeName($props['template'] ?? null) ?: 'default';
 
 		return [
 			...$props,
 			'content'  => $content,
 			'isDraft'  => $props['isDraft'] ?? $props['draft'] ?? true,
-			'model'    => $props['model']   ?? $template,
+			// always derive the model from the template. A custom model
+			// could otherwise bypass the content validation for public pages
+			'model'    => $template,
 			'slug'     => Url::slug($props['slug'] ?? $content['title'] ?? null),
 			'template' => $template,
 		];

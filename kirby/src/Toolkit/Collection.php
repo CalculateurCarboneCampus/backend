@@ -739,7 +739,9 @@ class Collection extends Iterator implements Stringable
 		$collection = clone $this;
 
 		foreach ($keys as $key) {
-			unset($collection->{$key});
+			// `unset($collection->{$key})` would remove a property
+			// instead of the element for keys like `data`
+			$collection->remove($key);
 		}
 
 		return $collection;
@@ -796,7 +798,7 @@ class Collection extends Iterator implements Stringable
 			$row = $this->getAttribute($item, $field);
 
 			if ($split !== null) {
-				$result = [...$result, ...Str::split($row, $split)];
+				array_push($result, ...Str::split($row, $split));
 			} else {
 				$result[] = $row;
 			}
